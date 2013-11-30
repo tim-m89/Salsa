@@ -245,8 +245,7 @@ namespace Generator
                         _requestedMembers.Add(requestedType, new List<string>());
                 }
 
-                w.WriteLine("{-# LANGUAGE ForeignFunctionInterface, MultiParamTypeClasses, FlexibleInstances, TypeFamilies, TypeOperators, TypeSynonymInstances #-}");
-                w.WriteLine("{-# OPTIONS_GHC -fallow-undecidable-instances #-}");
+                w.WriteLine("{-# LANGUAGE ForeignFunctionInterface, MultiParamTypeClasses, FlexibleInstances, TypeFamilies, TypeOperators, TypeSynonymInstances, UndecidableInstances #-}");
 
                 w.WriteLine("module {0} (", "Bindings");
                 w.WriteLine("  module Labels");
@@ -274,6 +273,8 @@ namespace Generator
 
             using (w = File.CreateText(Path.Combine(outputPath, "Labels.hs")))
             {
+                w.WriteLine("{-# LANGUAGE EmptyDataDecls #-}"); 
+
                 w.WriteLine("module Labels where");
                 w.WriteLine("import Foreign.Salsa (invoke)");
                 w.WriteLine();
