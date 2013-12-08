@@ -44,8 +44,7 @@ withCLR action = do
 
 startCLR :: IO ()
 startCLR = do
-    start_ICorRuntimeHost clrHost
-
+    startCLR'
     -- Allow .NET to call into Haskell and free unused function pointer wrappers
     setFreeHaskellFunPtr 
 
@@ -56,14 +55,8 @@ stopCLR = do
     -- Prevent .NET finalizers from calling into Haskell (and causing access violations)
     clearFreeHaskellFunPtr
 
-    stop_ICorRuntimeHost clrHost
-    return ()
+    stopCLR'
 
--- | 'clrHost' stores a reference to the ICLRRuntimeHost for the .NET execution
---   engine that is hosted in the process.
-{-# NOINLINE clrHost #-}
-clrHost :: ICorRuntimeHost
-clrHost = unsafePerformIO $ corBindToRuntimeEx
 
 
 -- | @'unsafeGetPointerToMethod' m@ returns a function pointer to the method @m@ 
@@ -78,7 +71,7 @@ unsafeGetPointerToMethod methodName = do
 
 {-# NOINLINE getPointerToMethodRaw #-}
 getPointerToMethodRaw :: GetPointerToMethodDelegate a
-getPointerToMethodRaw = makeGetPointerToMethodDelegate $ unsafePerformIO $ loadDriverAndBoot clrHost
+getPointerToMethodRaw = makeGetPointerToMethodDelegate $ unsafePerformIO $ loadDriverAndBoot
 
 type GetPointerToMethodDelegate a = CWString -> IO (FunPtr a)
 foreign import stdcall "dynamic" makeGetPointerToMethodDelegate :: FunPtr (GetPointerToMethodDelegate a) ->

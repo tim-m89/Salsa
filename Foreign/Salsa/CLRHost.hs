@@ -12,11 +12,9 @@
 --
 -----------------------------------------------------------------------------
 module Foreign.Salsa.CLRHost (
-    corBindToRuntimeEx,
-    start_ICorRuntimeHost,
-    stop_ICorRuntimeHost,
+    startCLR',
+    stopCLR',
     loadDriverAndBoot,
-    ICorRuntimeHost
     ) where
 
 import Data.Word
@@ -40,6 +38,18 @@ import Foreign.Salsa.Driver
 --
 
 type ICorRuntimeHost = InterfacePtr
+
+
+
+-- | 'clrHost' stores a reference to the ICLRRuntimeHost for the .NET execution
+--   engine that is hosted in the process.
+{-# NOINLINE clrHost #-}
+clrHost :: ICorRuntimeHost
+clrHost = unsafePerformIO $ corBindToRuntimeEx
+
+startCLR' = start_ICorRuntimeHost clrHost
+stopCLR' = stop_ICorRuntimeHost clrHost
+
 
 -- | 'corBindToRunTimeEx' loads the CLR execution engine into the process and returns
 --   a COM interface for it.
@@ -174,8 +184,8 @@ foreign import stdcall "dynamic" makeInvokeMember_Type :: FunPtr InvokeMember_Ty
 --   memory (the binary data is originally stored in 'driverData'), and then invokes the
 --   Boot method (from the Salsa.Driver class) to obtain a function pointer for invoking 
 --   the 'GetPointerToMethod' method.
-loadDriverAndBoot :: ICorRuntimeHost -> IO (FunPtr (CWString -> IO (FunPtr a)))
-loadDriverAndBoot clrHost = do
+loadDriverAndBoot' :: ICorRuntimeHost -> IO (FunPtr (CWString -> IO (FunPtr a)))
+loadDriverAndBoot' clrHost = do
     -- Obtain an _AppDomain interface pointer to the default application domain
     withInterface (getDefaultDomain_ICorRuntimeHost clrHost) $ \untypedAppDomain -> do
         let iid_AppDomain = Guid 0x05F696DC 0x2B29 0x3663 0xAD 0x8B 0xC4 0x38 0x9C 0xF2 0xA7 0x13
@@ -204,6 +214,10 @@ loadDriverAndBoot clrHost = do
 
                             -- Return a wrapper function for the 'GetPointerToMethod' method
                             return $ unsafeCoerce returnValue)
+
+loadDriverAndBoot = loadDriverAndBoot' clrHost
+
+
 
 {-
 
