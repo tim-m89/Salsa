@@ -60,7 +60,7 @@ Library
     Foreign.Salsa.Binding
 
   Other-Modules:
-    Foreign.Salsa.CLR, Foreign.Salsa.CLRHost, Foreign.Salsa.Common,
+    Foreign.Salsa.CLR, Foreign.Salsa.Win.CLRHost, Foreign.Salsa.Common,
     Foreign.Salsa.Core, Foreign.Salsa.Resolver, Foreign.Salsa.TypePrelude,
     Foreign.Salsa.Driver
 

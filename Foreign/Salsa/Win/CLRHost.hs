@@ -1,7 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.CLRHost
+-- Module      : Foreign.Salsa.Win.CLRHost
 -- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
@@ -11,7 +11,7 @@
 -- with the Microsoft COM.
 --
 -----------------------------------------------------------------------------
-module Foreign.Salsa.CLRHost (
+module Foreign.Salsa.Win.CLRHost (
     startCLR',
     stopCLR',
     loadDriverAndBoot,

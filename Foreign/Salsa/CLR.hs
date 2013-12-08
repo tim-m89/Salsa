@@ -27,7 +27,7 @@ import System.IO.Unsafe ( unsafePerformIO )
 import Foreign hiding ( new, newForeignPtr, unsafePerformIO )
 import Foreign.C.String
 
-import Foreign.Salsa.CLRHost
+import Foreign.Salsa.Win.CLRHost
 
 -- | Identifies a foreign (.NET) object instance
 type ObjectId = Int32
