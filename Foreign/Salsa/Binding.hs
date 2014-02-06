@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface, TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances, ScopedTypeVariables, CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Foreign.Salsa.Binding
@@ -15,7 +15,7 @@ module Foreign.Salsa.Binding (
     module Foreign.Salsa.CLR,
     module Foreign.Salsa.TypePrelude,
     module Foreign.Salsa.Resolver,
-    withCWString, CWString, FunPtr, unsafePerformIO, liftM,
+    FunPtr, unsafePerformIO, liftM,
     type_GetType
     ) where
 
@@ -40,8 +40,8 @@ import Control.Monad (liftM)
 -- the generator.
 --
 
-type Type_GetType_stub = CWString -> Bool -> IO ObjectId
-foreign import stdcall "dynamic" make_Type_GetType_stub :: FunPtr Type_GetType_stub -> Type_GetType_stub
+type Type_GetType_stub = SalsaString -> Bool -> IO ObjectId
+foreign import ccall "dynamic" make_Type_GetType_stub :: FunPtr Type_GetType_stub -> Type_GetType_stub
 
 {-# NOINLINE type_GetType_stub #-}
 type_GetType_stub :: Type_GetType_stub
@@ -53,7 +53,7 @@ type_GetType typeName = marshalMethod2s type_GetType_stub undefined undefined (t
 
 
 type Type_MakeArrayType_stub = ObjectId -> Int32 -> IO ObjectId
-foreign import stdcall "dynamic" make_Type_MakeArrayType_stub :: FunPtr Type_MakeArrayType_stub -> Type_MakeArrayType_stub
+foreign import ccall "dynamic" make_Type_MakeArrayType_stub :: FunPtr Type_MakeArrayType_stub -> Type_MakeArrayType_stub
 
 {-# NOINLINE type_MakeArrayType_stub #-}
 type_MakeArrayType_stub :: Type_MakeArrayType_stub

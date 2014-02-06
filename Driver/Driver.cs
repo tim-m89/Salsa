@@ -40,7 +40,6 @@ namespace Salsa
             //    Assembly.GetExecutingAssembly().GetName().Version);
 
             Trace.Listeners.Add(new ConsoleTraceListener());
-            System.Windows.Forms.Application.EnableVisualStyles();
 
             _assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(
                 new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.RunAndSave);
@@ -248,7 +247,7 @@ namespace Salsa
             }
         }
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void ReleaseObjectDelegate(int oId);
         private static ReleaseObjectDelegate _ReleaseObjectDelegate = ReleaseObject;
 
@@ -992,10 +991,10 @@ namespace Salsa
                     TypeAttributes.Sealed | TypeAttributes.AnsiClass |
                     TypeAttributes.AutoClass, typeof(System.MulticastDelegate));
 
-                // Add a '[UnmanagedFunctionPointer(CallingConvention.StdCall)]' attribute to the delegate
+                // Add a '[UnmanagedFunctionPointer(CallingConvention.Cdecl)]' attribute to the delegate
                 typeBuilder.SetCustomAttribute(new CustomAttributeBuilder(
                     typeof(UnmanagedFunctionPointerAttribute).GetConstructor(new Type[] { typeof(CallingConvention) }),
-                    new object[] { CallingConvention.StdCall }));
+                    new object[] { CallingConvention.Cdecl }));
 
                 ConstructorBuilder constructorBuilder = typeBuilder.DefineConstructor(
                     MethodAttributes.RTSpecialName | MethodAttributes.HideBySig |
@@ -1039,7 +1038,7 @@ namespace Salsa
     /// <summary>
     /// A delegate for the signature of the Haskell function 'freeHaskellFunPtr'.
     /// </summary>
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void FreeHaskellFunPtrDelegate(IntPtr funPtr);
 
     /// <summary>

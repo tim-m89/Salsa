@@ -15,6 +15,7 @@ module Foreign.Salsa.Win.CLRHost (
     startCLR',
     stopCLR',
     loadDriverAndBoot,
+    SalsaString, withSalsaString, peekSalsaString
     ) where
 
 import Data.Word
@@ -184,7 +185,7 @@ foreign import stdcall "dynamic" makeInvokeMember_Type :: FunPtr InvokeMember_Ty
 --   memory (the binary data is originally stored in 'driverData'), and then invokes the
 --   Boot method (from the Salsa.Driver class) to obtain a function pointer for invoking 
 --   the 'GetPointerToMethod' method.
-loadDriverAndBoot' :: ICorRuntimeHost -> IO (FunPtr (CWString -> IO (FunPtr a)))
+loadDriverAndBoot' :: ICorRuntimeHost -> IO (FunPtr (SalsaString -> IO (FunPtr a)))
 loadDriverAndBoot' clrHost = do
     -- Obtain an _AppDomain interface pointer to the default application domain
     withInterface (getDefaultDomain_ICorRuntimeHost clrHost) $ \untypedAppDomain -> do
@@ -393,5 +394,10 @@ withBStr s = bracket (sysAllocString s) (sysFreeString)
 checkHR :: String -> HResult -> IO HResult
 checkHR msg 0 = return 0
 checkHR msg r = error $ printf "%s failed (0x%8x)" msg r
+
+
+type SalsaString = CString
+withSalsaString = withCString
+peekSalsaString = peekCString
 
 -- vim:set ts=4 sw=4 expandtab:

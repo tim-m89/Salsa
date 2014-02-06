@@ -23,6 +23,7 @@ Copyright:      (c) 2007-2008 Andrew Appleyard
 Stability:      Experimental
 Tested-With:    GHC==6.8.3
 
+
 Extra-Source-Files:
   README
 
@@ -52,19 +53,44 @@ Extra-Source-Files:
 
   Docs/Thesis.pdf
 
+flag use_mono
+    description: use mono instead of .Net
+    default: False
+
 Library
-  Build-Depends: base, Win32, bytestring
+  
+  C-sources: Foreign/Salsa/salsa.c
 
-  Exposed-modules:
-    Foreign.Salsa
-    Foreign.Salsa.Binding
+  if !os(windows) || flag(use_mono)
 
-  Other-Modules:
-    Foreign.Salsa.CLR, Foreign.Salsa.Win.CLRHost, Foreign.Salsa.Common,
-    Foreign.Salsa.Core, Foreign.Salsa.Resolver, Foreign.Salsa.TypePrelude,
-    Foreign.Salsa.Driver
+    Build-Depends: base, bytestring
 
-  Extra-Libraries: oleaut32, ole32
+    Cpp-options: -DMONO
+    cc-options: -DMONO
 
-  Extensions: ForeignFunctionInterface
+    Exposed-modules:
+      Foreign.Salsa
+      Foreign.Salsa.Binding
+
+    Other-Modules:
+      Foreign.Salsa.CLR, Foreign.Salsa.Mono.CLRHost, Foreign.Salsa.Common,
+      Foreign.Salsa.Core, Foreign.Salsa.Resolver, Foreign.Salsa.TypePrelude,
+      Foreign.Salsa.Driver
+
+    Extra-Libraries: glib-2.0, mono-2.0
+
+  else
+
+    Build-Depends: base, Win32, bytestring
+
+    Exposed-modules:
+      Foreign.Salsa
+      Foreign.Salsa.Binding
+
+    Other-Modules:
+      Foreign.Salsa.CLR, Foreign.Salsa.Win.CLRHost, Foreign.Salsa.Common,
+      Foreign.Salsa.Core, Foreign.Salsa.Resolver, Foreign.Salsa.TypePrelude,
+      Foreign.Salsa.Driver
+
+    Extra-Libraries: oleaut32, ole32
 

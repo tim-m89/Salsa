@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs, TypeFamilies, MultiParamTypeClasses, EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification, FlexibleContexts, TypeOperators #-}
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances, CPP, ForeignFunctionInterface #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Foreign.Salsa.Core
@@ -14,7 +14,6 @@ module Foreign.Salsa.Core where
 import Unsafe.Coerce (unsafeCoerce)
 import System.IO.Unsafe ( unsafePerformIO )
 import Foreign.C.String
-import System.Win32
 
 import Foreign hiding (new, newForeignPtr, unsafePerformIO)
 import Foreign.Concurrent (newForeignPtr)
@@ -23,6 +22,13 @@ import Foreign.Salsa.Common
 import Foreign.Salsa.TypePrelude
 import Foreign.Salsa.Resolver
 import Foreign.Salsa.CLR
+
+#if (MONO)
+foreign import ccall mono_free :: Ptr a -> IO ()
+localFree = mono_free
+#else
+import System.Win32
+#endif
 
 -- Reverse function application
 x # f = f x
@@ -258,8 +264,8 @@ convert v = coerce v
 class Marshal from to where
     marshal :: from -> (to -> IO a) -> IO a
 
-instance Marshal String CWString where
-    marshal s = withCWString s
+instance Marshal String SalsaString where
+    marshal s = withSalsaString s
 
 instance Marshal (Obj a) ObjectId where
     -- | @'marshal' o k@ provides access to the object identifier in @o@ within
@@ -299,9 +305,9 @@ instance Unmarshal ObjectId (Obj a) where
     unmarshal 0   = return ObjNull
     unmarshal oId = newForeignPtr nullPtr (releaseObject oId) >>= return . Obj oId
 
-instance Unmarshal CWString String where
+instance Unmarshal SalsaString String where
     unmarshal s = do
-        s' <- peekCWString s
+        s' <- peekSalsaString s
         localFree s -- Free the string allocated by the .NET marshaler (use
                     -- LocalFree for LPWSTRs and SysFreeString for BSTRs)
         return s'

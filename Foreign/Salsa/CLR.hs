@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Foreign.Salsa.CLR
@@ -19,7 +19,8 @@ module Foreign.Salsa.CLR (
     getFieldGetStub,
     getFieldSetStub,
     getDelegateConstructorStub,
-    boxString, boxInt32, boxBoolean 
+    boxString, boxInt32, boxBoolean,
+    SalsaString, withSalsaString, peekSalsaString 
     ) where
 
 import Data.Int
@@ -27,7 +28,11 @@ import System.IO.Unsafe ( unsafePerformIO )
 import Foreign hiding ( new, newForeignPtr, unsafePerformIO )
 import Foreign.C.String
 
+#if (MONO)
+import Foreign.Salsa.Mono.CLRHost
+#else
 import Foreign.Salsa.Win.CLRHost
+#endif
 
 -- | Identifies a foreign (.NET) object instance
 type ObjectId = Int32
@@ -64,7 +69,7 @@ stopCLR = do
 --  if the type of the resulting function pointer matches that of the method given.
 unsafeGetPointerToMethod :: String -> IO (FunPtr a)
 unsafeGetPointerToMethod methodName = do
-    result <- withCWString methodName $ \methodName' -> getPointerToMethodRaw methodName'
+    result <- withSalsaString methodName $ \methodName' -> getPointerToMethodRaw methodName'
     if result == nullFunPtr
         then error $ "Unable to execute Salsa.dll method '" ++ methodName ++ "'."
         else return result
@@ -73,8 +78,8 @@ unsafeGetPointerToMethod methodName = do
 getPointerToMethodRaw :: GetPointerToMethodDelegate a
 getPointerToMethodRaw = makeGetPointerToMethodDelegate $ unsafePerformIO $ loadDriverAndBoot
 
-type GetPointerToMethodDelegate a = CWString -> IO (FunPtr a)
-foreign import stdcall "dynamic" makeGetPointerToMethodDelegate :: FunPtr (GetPointerToMethodDelegate a) ->
+type GetPointerToMethodDelegate a = SalsaString -> IO (FunPtr a)
+foreign import ccall "dynamic" makeGetPointerToMethodDelegate :: FunPtr (GetPointerToMethodDelegate a) ->
     GetPointerToMethodDelegate a
 
 
@@ -84,7 +89,7 @@ releaseObject :: ObjectId -> IO ()
 releaseObject = makeReleaseObjectDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "ReleaseObject"
 
 type ReleaseObjectDelegate = ObjectId -> IO ()
-foreign import stdcall "dynamic" makeReleaseObjectDelegate :: FunPtr ReleaseObjectDelegate -> ReleaseObjectDelegate
+foreign import ccall "dynamic" makeReleaseObjectDelegate :: FunPtr ReleaseObjectDelegate -> ReleaseObjectDelegate
 
 
 -- | Passes a function pointer to the 'freeHaskellFunPtr' function into .NET so
@@ -109,10 +114,10 @@ setFreeHaskellFunPtrRaw :: (FunPtr (FunPtr a -> IO ()) -> IO ())
 setFreeHaskellFunPtrRaw = makeSetFreeHaskellFunPtrDelegate $ unsafePerformIO $
     unsafeGetPointerToMethod "SetFreeHaskellFunPtr"
   
-foreign import stdcall "dynamic" makeSetFreeHaskellFunPtrDelegate ::
+foreign import ccall "dynamic" makeSetFreeHaskellFunPtrDelegate ::
     FunPtr (FunPtr (FunPtr a -> IO ()) -> IO ()) -> (FunPtr (FunPtr a -> IO ()) -> IO ())
 
-foreign import stdcall "wrapper" wrapFreeHaskellFunPtr :: 
+foreign import ccall "wrapper" wrapFreeHaskellFunPtr :: 
     (FunPtr a -> IO ()) -> IO (FunPtr (FunPtr a -> IO ()))
 
 
@@ -123,7 +128,7 @@ saveDynamicAssembly :: IO ()
 saveDynamicAssembly = makeSaveDynamicAssemblyDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "SaveDynamicAssembly"
 
 type SaveDynamicAssemblyDelegate = IO ()
-foreign import stdcall "dynamic" makeSaveDynamicAssemblyDelegate :: FunPtr SaveDynamicAssemblyDelegate -> SaveDynamicAssemblyDelegate
+foreign import ccall "dynamic" makeSaveDynamicAssemblyDelegate :: FunPtr SaveDynamicAssemblyDelegate -> SaveDynamicAssemblyDelegate
 
 
 -- | @'getMethodStub' c m s@ returns a function pointer to a function that, when
@@ -133,17 +138,17 @@ foreign import stdcall "dynamic" makeSaveDynamicAssemblyDelegate :: FunPtr SaveD
 --   desired overload of the given method.
 getMethodStub :: String -> String -> String -> IO (FunPtr f)
 getMethodStub className methodName parameterTypeNames = do
-    withCWString className $ \className' ->
-        withCWString methodName $ \methodName' ->
-            withCWString parameterTypeNames $ \parameterTypeNames' ->
+    withSalsaString className $ \className' ->
+        withSalsaString methodName $ \methodName' ->
+            withSalsaString parameterTypeNames $ \parameterTypeNames' ->
                 return $ getMethodStubRaw className' methodName' parameterTypeNames'
 
 {-# NOINLINE getMethodStubRaw #-}
 getMethodStubRaw :: GetMethodStubDelegate a
 getMethodStubRaw = makeGetMethodStubDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "GetMethodStub"
 
-type GetMethodStubDelegate a = CWString -> CWString -> CWString -> FunPtr a
-foreign import stdcall "dynamic" makeGetMethodStubDelegate :: FunPtr (GetMethodStubDelegate a) ->
+type GetMethodStubDelegate a = SalsaString -> SalsaString -> SalsaString -> FunPtr a
+foreign import ccall "dynamic" makeGetMethodStubDelegate :: FunPtr (GetMethodStubDelegate a) ->
     (GetMethodStubDelegate a)
 
 
@@ -151,16 +156,16 @@ foreign import stdcall "dynamic" makeGetMethodStubDelegate :: FunPtr (GetMethodS
 --   called, gets the value of the field @f@ in class @c@.
 getFieldGetStub :: String -> String -> IO (FunPtr f)
 getFieldGetStub className fieldName = do
-    withCWString className $ \className' ->
-        withCWString fieldName $ \fieldName' ->
+    withSalsaString className $ \className' ->
+        withSalsaString fieldName $ \fieldName' ->
             return $ getFieldGetStubRaw className' fieldName'
 
 {-# NOINLINE getFieldGetStubRaw #-}
 getFieldGetStubRaw :: GetFieldGetStubDelegate a
 getFieldGetStubRaw = makeGetFieldGetStubDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "GetFieldGetStub"
 
-type GetFieldGetStubDelegate a = CWString -> CWString -> FunPtr a
-foreign import stdcall "dynamic" makeGetFieldGetStubDelegate :: FunPtr (GetFieldGetStubDelegate a) ->
+type GetFieldGetStubDelegate a = SalsaString -> SalsaString -> FunPtr a
+foreign import ccall "dynamic" makeGetFieldGetStubDelegate :: FunPtr (GetFieldGetStubDelegate a) ->
     (GetFieldGetStubDelegate a)
 
 
@@ -168,16 +173,16 @@ foreign import stdcall "dynamic" makeGetFieldGetStubDelegate :: FunPtr (GetField
 --   called, sets the value of the field @f@ in class @c@ to the given value.
 getFieldSetStub :: String -> String -> IO (FunPtr f)
 getFieldSetStub className fieldName = do
-    withCWString className $ \className' ->
-        withCWString fieldName $ \fieldName' ->
+    withSalsaString className $ \className' ->
+        withSalsaString fieldName $ \fieldName' ->
             return $ getFieldSetStubRaw className' fieldName'
 
 {-# NOINLINE getFieldSetStubRaw #-}
 getFieldSetStubRaw :: GetFieldSetStubDelegate a
 getFieldSetStubRaw = makeGetFieldSetStubDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "GetFieldSetStub"
 
-type GetFieldSetStubDelegate a = CWString -> CWString -> FunPtr a
-foreign import stdcall "dynamic" makeGetFieldSetStubDelegate :: FunPtr (GetFieldSetStubDelegate a) ->
+type GetFieldSetStubDelegate a = SalsaString -> SalsaString -> FunPtr a
+foreign import ccall "dynamic" makeGetFieldSetStubDelegate :: FunPtr (GetFieldSetStubDelegate a) ->
     (GetFieldSetStubDelegate a)
 
 
@@ -191,7 +196,7 @@ getDelegateConstructorStub delegateTypeName wrapper = do
     -- Obtain a function pointer to a function that, when called with a
     -- function pointer compatible with the given wrapper function, returns
     -- a reference to a .NET delegate object that calls the function.
-    delegateConstructor <- withCWString delegateTypeName $
+    delegateConstructor <- withSalsaString delegateTypeName $
         \delegateTypeName' -> getDelegateConstructorStubRaw delegateTypeName' 
 
     -- Returns a function that accepts a function, 'f' implementing the
@@ -205,12 +210,12 @@ getDelegateConstructorStub delegateTypeName wrapper = do
 getDelegateConstructorStubRaw :: GetDelegateConstructorStubDelegate a
 getDelegateConstructorStubRaw = makeGetDelegateConstructorStubDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "GetDelegateConstructorStub"
 
-type GetDelegateConstructorStubDelegate a = CWString -> IO (FunPtr (FunPtr a -> IO ObjectId))
-foreign import stdcall "dynamic" makeGetDelegateConstructorStubDelegate :: FunPtr (GetDelegateConstructorStubDelegate a) ->
+type GetDelegateConstructorStubDelegate a = SalsaString -> IO (FunPtr (FunPtr a -> IO ObjectId))
+foreign import ccall "dynamic" makeGetDelegateConstructorStubDelegate :: FunPtr (GetDelegateConstructorStubDelegate a) ->
     (GetDelegateConstructorStubDelegate a)
 
 type DelegateConstructor a = FunPtr a -> IO ObjectId
-foreign import stdcall "dynamic" makeDelegateConstructor :: FunPtr (DelegateConstructor a) -> (DelegateConstructor a)
+foreign import ccall "dynamic" makeDelegateConstructor :: FunPtr (DelegateConstructor a) -> (DelegateConstructor a)
 
 --
 -- Boxing support
@@ -220,21 +225,21 @@ foreign import stdcall "dynamic" makeDelegateConstructor :: FunPtr (DelegateCons
 --   called, returns a boxed object reference to the given type.
 getBoxStub :: String -> IO (FunPtr f)
 getBoxStub typeName = do
-    withCWString typeName $ \typeName' -> return $ getBoxStubRaw typeName'
+    withSalsaString typeName $ \typeName' -> return $ getBoxStubRaw typeName'
 
 {-# NOINLINE getBoxStubRaw #-}
 getBoxStubRaw :: GetBoxStubDelegate a
 getBoxStubRaw = makeGetBoxStubDelegate $ unsafePerformIO $ unsafeGetPointerToMethod "GetBoxStub"
 
-type GetBoxStubDelegate a = CWString -> FunPtr a
-foreign import stdcall "dynamic" makeGetBoxStubDelegate :: FunPtr (GetBoxStubDelegate a) -> GetBoxStubDelegate a
+type GetBoxStubDelegate a = SalsaString -> FunPtr a
+foreign import ccall "dynamic" makeGetBoxStubDelegate :: FunPtr (GetBoxStubDelegate a) -> GetBoxStubDelegate a
 
 
 boxString :: String -> IO ObjectId
-boxString s = withCWString s $ \s' -> boxStringStub s'
+boxString s = withSalsaString s $ \s' -> boxStringStub s'
 
-type BoxStringStub = CWString -> IO ObjectId
-foreign import stdcall "dynamic" makeBoxStringStub :: FunPtr BoxStringStub -> BoxStringStub
+type BoxStringStub = SalsaString -> IO ObjectId
+foreign import ccall "dynamic" makeBoxStringStub :: FunPtr BoxStringStub -> BoxStringStub
 
 {-# NOINLINE boxStringStub #-}
 boxStringStub :: BoxStringStub
@@ -245,7 +250,7 @@ boxInt32 :: Int32 -> IO ObjectId
 boxInt32 = boxInt32Stub
 
 type BoxInt32Stub = Int32 -> IO ObjectId
-foreign import stdcall "dynamic" makeBoxInt32Stub :: FunPtr BoxInt32Stub -> BoxInt32Stub
+foreign import ccall "dynamic" makeBoxInt32Stub :: FunPtr BoxInt32Stub -> BoxInt32Stub
 
 {-# NOINLINE boxInt32Stub #-}
 boxInt32Stub :: BoxInt32Stub
@@ -263,7 +268,7 @@ boxedTrue  = unsafePerformIO $ boxBooleanStub True
 boxedFalse = unsafePerformIO $ boxBooleanStub False
 
 type BoxBooleanStub = Bool -> IO ObjectId
-foreign import stdcall "dynamic" makeBoxBooleanStub :: FunPtr BoxBooleanStub -> BoxBooleanStub
+foreign import ccall "dynamic" makeBoxBooleanStub :: FunPtr BoxBooleanStub -> BoxBooleanStub
 
 {-# NOINLINE boxBooleanStub #-}
 boxBooleanStub :: BoxBooleanStub

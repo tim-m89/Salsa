@@ -655,7 +655,7 @@ namespace Generator
                         delegate(ParameterInfo pi) { return ToBaseType(pi.ParameterType); }),
                         ToBaseReturnType(GetMemberReturnType(invokerMi))));
 
-                w.WriteLine("foreign import stdcall \"wrapper\" {0} :: {1} -> (IO (FunPtr {1}))",
+                w.WriteLine("foreign import ccall \"wrapper\" {0} :: {1} -> (IO (FunPtr {1}))",
                     wrapperFunction, wrapperType);
                 w.WriteLine();
 
@@ -809,7 +809,7 @@ namespace Generator
                 Util.JoinSuffix(" -> ", Enumerable.Select<ParameterInfo, string>(GetParameters(mi),
                     delegate(ParameterInfo pi) { return ToBaseType(pi.ParameterType); }),
                     ToBaseReturnType(GetMemberReturnType(mi))));
-            w.WriteLine("foreign import stdcall \"dynamic\" {0} :: FunPtr {1} -> {1}",
+            w.WriteLine("foreign import ccall \"dynamic\" {0} :: FunPtr {1} -> {1}",
                 makeFunction, stubType);
             w.WriteLine();
             w.WriteLine("{{-# NOINLINE {0} #-}}", stubFunction);
@@ -840,7 +840,7 @@ namespace Generator
                 isGet ? "" : (ToBaseType(fi.FieldType) + " -> "),
                 isGet ? ToBaseReturnType(fi.FieldType) : "IO ()");
 
-            w.WriteLine("foreign import stdcall \"dynamic\" {0} :: FunPtr {1} -> {1}",
+            w.WriteLine("foreign import ccall \"dynamic\" {0} :: FunPtr {1} -> {1}",
                 makeFunction, stubType);
 
             w.WriteLine();
@@ -1013,7 +1013,7 @@ namespace Generator
         {
             if (t == typeof(void)) return "()";
             if (t == typeof(Int32)) return "Int32";
-            if (t == typeof(String)) return "CWString";
+            if (t == typeof(String)) return "SalsaString";
             if (t == typeof(Boolean)) return "Bool";
             if (t == typeof(Double)) return "Double";
             return "ObjectId";

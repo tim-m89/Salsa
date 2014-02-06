@@ -7,6 +7,13 @@ Building:
 
   You can also build the driver by hand:
 
-    csc -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
-    runhaskell Embed Salsa.dll > ../Salsa/Driver.hs
+csc -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
+
+  Or if mono:
+
+gmcs -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
+
+  Followed by:
+
+runhaskell Embed Salsa.dll > ../Foreign/Salsa/Driver.hs
 
