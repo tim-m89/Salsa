@@ -1,7 +1,6 @@
 //
 // Salsa Binding Generator
 //
-// Copyright: (c) 2007-2008 Andrew Appleyard
 // Licence:   BSD3 (see LICENSE)
 //
 

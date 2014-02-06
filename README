@@ -61,17 +61,15 @@ Requirements:
 
 Building:
 
-  Build the Salsa library using Cabal (version 1.2) as usual:
+  First build the Salsa.dll driver assembly. (See the README file within the 'Driver
+  directory).
 
-    runhaskell Setup.hs configure
-    runhaskell Setup.hs build
-    runhaskell Setup.hs install
+  Then build an install the Salsa library using Cabal as usual:
 
-  The generator, driver, and each of the samples can be built with MSBuild;
-  just run 'msbuild' in the appropriate directory.  (The msbuild binary can be
-  found in '%WINDIR%\Microsoft.NET\Framework\v2.0.50272').
+    cabal install
 
-Author:
+Authors:
 
   Andrew Appleyard
+  Tim Matthews
 

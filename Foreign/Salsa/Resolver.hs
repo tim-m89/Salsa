@@ -2,8 +2,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.Resolver
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -- Contains a type-level implementation of the C# function member overload

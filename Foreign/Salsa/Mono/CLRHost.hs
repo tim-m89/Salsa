@@ -1,14 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface, DoAndIfThenElse #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.Win.CLRHost
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
--- Exposes some of the methods of the ICLRRuntimeHost COM interface, which
--- can be used to host the the Microsoft CLR in the process, and to execute
--- code from a .NET assembly.  Includes basic functionality for dealing
--- with the Microsoft COM.
+-- Mono specific boostraping and exports
 --
 -----------------------------------------------------------------------------
 module Foreign.Salsa.Mono.CLRHost (

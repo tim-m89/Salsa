@@ -1,19 +1,13 @@
-
 Building:
 
-  To build the driver assembly, run 'msbuild' in the 'Driver' directory.  This
-  will compile Driver.cs into Salsa.dll, embed it as an unpacked byte string in
-  Driver.hs, and then copy it into the Foreign\Salsa directory.
+To build the driver assembly, run within this directory:
 
-  You can also build the driver by hand:
+  csc -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
 
-csc -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
+Or if mono:
 
-  Or if mono:
+  gmcs -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
 
-gmcs -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
-
-  Followed by:
-
-runhaskell Embed Salsa.dll > ../Foreign/Salsa/Driver.hs
+No further step are necessary. The file 'Salsa.dll' will be read and
+embedded from this directory automatically when building the Salsa library.
 

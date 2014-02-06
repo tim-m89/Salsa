@@ -1,7 +1,5 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Salsa
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -- Salsa: a .NET bridge for Haskell.

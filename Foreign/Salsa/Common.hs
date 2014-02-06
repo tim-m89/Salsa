@@ -1,8 +1,6 @@
 {-# LANGUAGE EmptyDataDecls #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.Common
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -- Exports data types and functions that are used throughout the bridge

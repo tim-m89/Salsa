@@ -2,8 +2,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.TypePrelude
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -- Type-level implementations of some standard boolean and list functions.

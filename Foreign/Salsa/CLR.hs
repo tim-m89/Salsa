@@ -1,8 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface, CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.CLR
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -- Provides convenient functions for accessing the CLR, including: loading

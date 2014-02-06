@@ -2,8 +2,6 @@
 {-# LANGUAGE FlexibleInstances, ScopedTypeVariables, CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.Binding
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -- Exports data types and functions required by the generated binding files.

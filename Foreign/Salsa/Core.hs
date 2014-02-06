@@ -4,8 +4,6 @@
 {-# LANGUAGE UndecidableInstances, CPP, ForeignFunctionInterface #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Foreign.Salsa.Core
--- Copyright   : (c) 2007-2008 Andrew Appleyard
 -- Licence     : BSD-style (see LICENSE)
 -- 
 -----------------------------------------------------------------------------
