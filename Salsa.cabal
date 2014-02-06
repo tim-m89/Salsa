@@ -63,7 +63,7 @@ Library
 
   if !os(windows) || flag(use_mono)
 
-    Build-Depends: base, bytestring
+    Build-Depends: base, bytestring, file-embed
 
     Cpp-options: -DMONO
     cc-options: -DMONO
@@ -81,7 +81,7 @@ Library
 
   else
 
-    Build-Depends: base, Win32, bytestring
+    Build-Depends: base, Win32, bytestring, file-embed
 
     Exposed-modules:
       Foreign.Salsa
