@@ -50,14 +50,17 @@ Requirements:
     Salsa makes extensive use of type families and thus requires at least
     version 6.8 of GHC.
 
-  * Microsoft .NET Framework 3.5
+  * Microsoft .NET Framework 3.5 / Mono
 
     Since the Generator requires .NET 3.5, any Salsa development also requires
     this version.  Executables produced with Salsa however will run with just
     .NET 2.0 (provided that only .NET 2.0 assemblies are used by the program).
 
-    Salsa will not work with versions 1.0/1.1 of the .NET Framework, or with
-    Mono.  (Supporting Mono shouldn't be too much work though.)
+    Salsa will not work with versions 1.0/1.1 of the .NET Framework
+
+    Building with Mono and running Salsa executables on Mono works. Salsa
+    will be built with Mono if not running on Windows or the flag 'use_mono'
+    is used when building with Cabal. 
 
 Building:
 
