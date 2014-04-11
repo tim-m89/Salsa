@@ -395,8 +395,8 @@ checkHR msg 0 = return 0
 checkHR msg r = error $ printf "%s failed (0x%8x)" msg r
 
 
-type SalsaString = CString
-withSalsaString = withCString
-peekSalsaString = peekCString
+type SalsaString = CWString
+withSalsaString = withCWString
+peekSalsaString = peekCWString
 
 -- vim:set ts=4 sw=4 expandtab:
