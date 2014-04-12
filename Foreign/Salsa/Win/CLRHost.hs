@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, DoAndIfThenElse #-}
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
@@ -38,35 +38,28 @@ import Foreign.Salsa.Driver
 --
 
 type ICorRuntimeHost = InterfacePtr
-
-
+type ICLrMetaHost    = InterfacePtr
+type ICLRRuntimeInfo = InterfacePtr
 
 -- | 'clrHost' stores a reference to the ICLRRuntimeHost for the .NET execution
 --   engine that is hosted in the process.
 {-# NOINLINE clrHost #-}
 clrHost :: ICorRuntimeHost
-clrHost = unsafePerformIO $ corBindToRuntimeEx
+clrHost = unsafePerformIO $ initClrHost
 
 startCLR' = start_ICorRuntimeHost clrHost
 stopCLR' = stop_ICorRuntimeHost clrHost
 
+clsid_CorRuntimeHost = Guid 0xCB2F6723 0xAB3A 0x11D2 0x9C 0x40 0x00 0xC0 0x4F 0xA3 0x0A 0x3E
+iid_ICorRuntimeHost  = Guid 0xCB2F6722 0xAB3A 0x11D2 0x9C 0x40 0x00 0xC0 0x4F 0xA3 0x0A 0x3E
 
 -- | 'corBindToRunTimeEx' loads the CLR execution engine into the process and returns
 --   a COM interface for it.
-corBindToRuntimeEx :: IO ICorRuntimeHost
-corBindToRuntimeEx = do
-    -- Load the 'mscoree' dynamic library into the process.  This is the
-    -- 'stub' library for the .NET execution engine, and is used to load an
-    -- appropriate version of the real runtime via a call to
-    -- 'CorBindToRuntimeEx'.
-    hMscoree <- loadLibrary "mscoree.dll"
-
+corBindToRuntimeEx :: HINSTANCE -> IO ICorRuntimeHost
+corBindToRuntimeEx hMscoree = do
     -- Obtain a pointer to the 'CorBindToRuntimeEx' function from mscoree.dll
     corBindToRuntimeExAddr <- getProcAddress hMscoree "CorBindToRuntimeEx"
     let corBindToRuntimeEx = makeCorBindToRuntimeEx $ castPtrToFunPtr corBindToRuntimeExAddr
-
-    let clsid_CorRuntimeHost = Guid 0xCB2F6723 0xAB3A 0x11D2 0x9C 0x40 0x00 0xC0 0x4F 0xA3 0x0A 0x3E
-        iid_ICorRuntimeHost  = Guid 0xCB2F6722 0xAB3A 0x11D2 0x9C 0x40 0x00 0xC0 0x4F 0xA3 0x0A 0x3E
 
     -- Request the shim (mscoree.dll) to load a version of the runtime into the
     -- process, returning a pointer to an implementation of the ICorRuntimeHost
@@ -79,9 +72,84 @@ corBindToRuntimeEx = do
                     refIID_ICorRuntimeHost clrHostPtr >>= checkHR "CorBindToRuntimeEx"
         peek clrHostPtr
 
+-- | 'createMetaHost' 
+createMetaHost :: Addr -> IO ICLrMetaHost
+createMetaHost clrCreateInstanceAddr = do
+    let clsid_CLRMetaHost = Guid 0X9280188D 0X0E8E 0X4867 0XB3 0X0C 0X7F 0XA8 0X38 0X84 0XE8 0XDE
+        iid_ICLRMetaHost  = Guid 0XD332DB9E 0XB9B3 0X4125 0X82 0X07 0XA1 0X48 0X84 0XF5 0X32 0X16
+    
+    let clrCreateInstance = makeCLRCreateInstance $ castPtrToFunPtr clrCreateInstanceAddr
+    
+    with (nullPtr :: ICLrMetaHost) $ \clrMetaHostPtr ->
+        with clsid_CLRMetaHost $ \refCLSID_CLRMetaHost ->
+            with iid_ICLRMetaHost $ \refIID_ICLRMetaHost -> do
+                hr <- clrCreateInstance refCLSID_CLRMetaHost refIID_ICLRMetaHost clrMetaHostPtr
+                if hr == 0 then
+                    peek clrMetaHostPtr
+                else
+                    return nullPtr
+
+-- | 'getRuntime_ICLRMetaHost'
+getRuntime_ICLRMetaHost :: ICLrMetaHost -> IO ICLRRuntimeInfo
+getRuntime_ICLRMetaHost this = do
+    let iid_ICLRRuntimeInfo = Guid 0xBD39D1D2 0XBA2F 0X486A 0X89 0XB0 0XB4 0XB0 0XCB 0X46 0X68 0X91
+    
+    f <- getInterfaceFunction 3 makeGetRuntime_ICLRMetaHost this
+
+    -- TODO: Version shouldn't be hard coded here
+    withCWString "v4.0.30319" $ \runtimeVers ->
+        with iid_ICLRRuntimeInfo $ \refIID_ICLRRuntimeInfo ->
+            with (nullPtr :: ICLRRuntimeInfo) $ \clrRuntimeInfoPtr -> do
+                f this runtimeVers refIID_ICLRRuntimeInfo clrRuntimeInfoPtr >>= checkHR "GetRuntime_ICLRMetaHost"
+                peek clrRuntimeInfoPtr
+                   
+    
+-- | 'getCorHost_ICLRRuntimeInfo'
+getCorHost_ICLRRuntimeInfo :: ICLRRuntimeInfo -> IO ICorRuntimeHost
+getCorHost_ICLRRuntimeInfo this = do
+    f <- getInterfaceFunction 9 makeGetInterface_ICLRRuntimeInfo this
+    with (nullPtr :: ICorRuntimeHost) $ \clrHostPtr -> do
+        with clsid_CorRuntimeHost $ \refCLSID_CorRuntimeHost -> 
+            with iid_ICorRuntimeHost $ \refIID_ICorRuntimeHost ->
+                f this refCLSID_CorRuntimeHost refIID_ICorRuntimeHost clrHostPtr >>= checkHR "GetCorHost_ICLRRuntimeInfo"
+        peek clrHostPtr
+
+
+-- | 'initClrHost'
+initClrHost :: IO ICorRuntimeHost
+initClrHost = do
+    -- Load the 'mscoree' dynamic library into the process.  This is the
+    -- 'stub' library for the .NET execution engine, and is used to load an
+    -- appropriate version of the real runtime via a call to
+    -- 'CorBindToRuntimeEx'.
+    hMscoree <- loadLibrary "mscoree.dll"
+
+    -- Attempt .Net 4.0 binding by first obtaining a pointer to 'CLRCreateInstance'
+    -- If this fails, fall back to corBindToRuntimeEx which only allows
+    -- binding to MS .Net versions < 4.0
+    clrCreateInstanceAddr <- getProcAddress hMscoree "CLRCreateInstance"
+    
+    if clrCreateInstanceAddr == nullPtr then
+        corBindToRuntimeEx hMscoree
+    else do
+        metaHost <- createMetaHost clrCreateInstanceAddr
+        if metaHost == nullPtr then
+            corBindToRuntimeEx hMscoree
+        else do
+            runInfo <- getRuntime_ICLRMetaHost metaHost
+            getCorHost_ICLRRuntimeInfo runInfo
+
 type CorBindToRuntimeEx = LPCWSTR -> LPCWSTR -> DWORD -> Ptr CLSID -> Ptr IID -> Ptr ICorRuntimeHost -> IO HResult
 foreign import stdcall "dynamic" makeCorBindToRuntimeEx :: FunPtr CorBindToRuntimeEx -> CorBindToRuntimeEx
 
+type CLRCreateInstance = Ptr CLSID -> Ptr IID -> Ptr ICLrMetaHost -> IO HResult
+foreign import stdcall "dynamic" makeCLRCreateInstance :: FunPtr CLRCreateInstance -> CLRCreateInstance
+
+type GetRuntime_ICLRMetaHost = ICLrMetaHost -> LPCWSTR -> Ptr IID -> Ptr ICLRRuntimeInfo -> IO HResult
+foreign import stdcall "dynamic" makeGetRuntime_ICLRMetaHost :: FunPtr GetRuntime_ICLRMetaHost -> GetRuntime_ICLRMetaHost
+
+type GetInterface_ICLRRuntimeInfo = ICLRRuntimeInfo -> Ptr CLSID -> Ptr IID -> Ptr ICorRuntimeHost -> IO HResult
+foreign import stdcall "dynamic" makeGetInterface_ICLRRuntimeInfo :: FunPtr GetInterface_ICLRRuntimeInfo -> GetInterface_ICLRRuntimeInfo
 
 -- | 'start_ICorRuntimeHost' calls the Start method of the given ICorRuntimeHost interface.
 start_ICorRuntimeHost this = do
