@@ -38,8 +38,9 @@ import Foreign.Salsa.Driver
 --
 
 type ICorRuntimeHost = InterfacePtr
-type ICLrMetaHost    = InterfacePtr
+type ICLRMetaHost    = InterfacePtr
 type ICLRRuntimeInfo = InterfacePtr
+type IEnumUnknown    = InterfacePtr
 
 -- | 'clrHost' stores a reference to the ICLRRuntimeHost for the .NET execution
 --   engine that is hosted in the process.
@@ -73,14 +74,14 @@ corBindToRuntimeEx hMscoree = do
         peek clrHostPtr
 
 -- | 'createMetaHost' 
-createMetaHost :: Addr -> IO ICLrMetaHost
+createMetaHost :: Addr -> IO ICLRMetaHost
 createMetaHost clrCreateInstanceAddr = do
     let clsid_CLRMetaHost = Guid 0X9280188D 0X0E8E 0X4867 0XB3 0X0C 0X7F 0XA8 0X38 0X84 0XE8 0XDE
         iid_ICLRMetaHost  = Guid 0XD332DB9E 0XB9B3 0X4125 0X82 0X07 0XA1 0X48 0X84 0XF5 0X32 0X16
     
     let clrCreateInstance = makeCLRCreateInstance $ castPtrToFunPtr clrCreateInstanceAddr
     
-    with (nullPtr :: ICLrMetaHost) $ \clrMetaHostPtr ->
+    with (nullPtr :: ICLRMetaHost) $ \clrMetaHostPtr ->
         with clsid_CLRMetaHost $ \refCLSID_CLRMetaHost ->
             with iid_ICLRMetaHost $ \refIID_ICLRMetaHost -> do
                 hr <- clrCreateInstance refCLSID_CLRMetaHost refIID_ICLRMetaHost clrMetaHostPtr
@@ -89,21 +90,50 @@ createMetaHost clrCreateInstanceAddr = do
                 else
                     return nullPtr
 
--- | 'getRuntime_ICLRMetaHost'
-getRuntime_ICLRMetaHost :: ICLrMetaHost -> IO ICLRRuntimeInfo
-getRuntime_ICLRMetaHost this = do
-    let iid_ICLRRuntimeInfo = Guid 0xBD39D1D2 0XBA2F 0X486A 0X89 0XB0 0XB4 0XB0 0XCB 0X46 0X68 0X91
-    
-    f <- getInterfaceFunction 3 makeGetRuntime_ICLRMetaHost this
+-- | 'enumInstalledRuntimes_ICLRMetaHost'
+enumInstalledRuntimes_ICLRMetaHost :: ICLRMetaHost -> IO IEnumUnknown
+enumInstalledRuntimes_ICLRMetaHost this = do
+    f <- getInterfaceFunction 5 makeEnumInstalledRuntimes_ICLRMetaHost this
+    with (nullPtr :: IEnumUnknown) $ \enumUnknownPtr -> do
+        f this enumUnknownPtr >>= checkHR "EnumerateInstalledRuntimes_ICLRMetaHost"
+        peek enumUnknownPtr
 
-    -- TODO: Version shouldn't be hard coded here
-    withCWString "v4.0.30319" $ \runtimeVers ->
-        with iid_ICLRRuntimeInfo $ \refIID_ICLRRuntimeInfo ->
-            with (nullPtr :: ICLRRuntimeInfo) $ \clrRuntimeInfoPtr -> do
-                f this runtimeVers refIID_ICLRRuntimeInfo clrRuntimeInfoPtr >>= checkHR "GetRuntime_ICLRMetaHost"
-                peek clrRuntimeInfoPtr
-                   
-    
+-- | 'next_IEnumUnknown'
+next_IEnumUnknown :: IEnumUnknown -> IO InterfacePtr
+next_IEnumUnknown this = do
+    f <- getInterfaceFunction 3 makeNext_IEnumUnknown this
+    with (0 :: Word32) $ \fetched ->
+        with (nullPtr :: InterfacePtr) $ \interfacePtr -> do
+            hr <- f this 1 interfacePtr fetched
+            if hr == 0 then
+                peek interfacePtr
+            else
+                return nullPtr
+
+-- | 'all_IEnumUnknown'
+all_IEnumUnknown :: IEnumUnknown -> [InterfacePtr] -> IO [InterfacePtr]
+all_IEnumUnknown this xs = do
+    next <- next_IEnumUnknown this
+    if next == nullPtr then
+        return xs
+    else
+        all_IEnumUnknown this (next : xs)
+
+-- | 'getRuntimes_ICLRMetaHost'
+getRuntimes_ICLRMetaHost :: ICLRMetaHost -> IO [ICLRRuntimeInfo]
+getRuntimes_ICLRMetaHost this = do
+    enum <- enumInstalledRuntimes_ICLRMetaHost this
+    all_IEnumUnknown enum []
+
+-- | 'getVersionString_ICLRRuntimeInfo'
+getVersionString_ICLRRuntimeInfo :: ICLRRuntimeInfo -> IO String
+getVersionString_ICLRRuntimeInfo this = do
+    f <- getInterfaceFunction 3 makeGetVersionString_ICLRRuntimeInfo this
+    with 512 $ \sizePtr ->
+        allocaArray 512 $ \stringPtr -> do
+            f this stringPtr sizePtr
+            peekCWString stringPtr
+
 -- | 'getCorHost_ICLRRuntimeInfo'
 getCorHost_ICLRRuntimeInfo :: ICLRRuntimeInfo -> IO ICorRuntimeHost
 getCorHost_ICLRRuntimeInfo this = do
@@ -136,20 +166,30 @@ initClrHost = do
         if metaHost == nullPtr then
             corBindToRuntimeEx hMscoree
         else do
-            runInfo <- getRuntime_ICLRMetaHost metaHost
-            getCorHost_ICLRRuntimeInfo runInfo
+            runtimes <- getRuntimes_ICLRMetaHost metaHost
+            getCorHost_ICLRRuntimeInfo $ head runtimes
 
 type CorBindToRuntimeEx = LPCWSTR -> LPCWSTR -> DWORD -> Ptr CLSID -> Ptr IID -> Ptr ICorRuntimeHost -> IO HResult
 foreign import stdcall "dynamic" makeCorBindToRuntimeEx :: FunPtr CorBindToRuntimeEx -> CorBindToRuntimeEx
 
-type CLRCreateInstance = Ptr CLSID -> Ptr IID -> Ptr ICLrMetaHost -> IO HResult
+type CLRCreateInstance = Ptr CLSID -> Ptr IID -> Ptr ICLRMetaHost -> IO HResult
 foreign import stdcall "dynamic" makeCLRCreateInstance :: FunPtr CLRCreateInstance -> CLRCreateInstance
 
-type GetRuntime_ICLRMetaHost = ICLrMetaHost -> LPCWSTR -> Ptr IID -> Ptr ICLRRuntimeInfo -> IO HResult
+type GetRuntime_ICLRMetaHost = ICLRMetaHost -> LPCWSTR -> Ptr IID -> Ptr ICLRRuntimeInfo -> IO HResult
 foreign import stdcall "dynamic" makeGetRuntime_ICLRMetaHost :: FunPtr GetRuntime_ICLRMetaHost -> GetRuntime_ICLRMetaHost
 
 type GetInterface_ICLRRuntimeInfo = ICLRRuntimeInfo -> Ptr CLSID -> Ptr IID -> Ptr ICorRuntimeHost -> IO HResult
 foreign import stdcall "dynamic" makeGetInterface_ICLRRuntimeInfo :: FunPtr GetInterface_ICLRRuntimeInfo -> GetInterface_ICLRRuntimeInfo
+
+type EnumInstalledRuntimes_ICLRMetaHost = ICLRMetaHost -> Ptr IEnumUnknown -> IO HResult
+foreign import stdcall "dynamic" makeEnumInstalledRuntimes_ICLRMetaHost :: FunPtr EnumInstalledRuntimes_ICLRMetaHost -> EnumInstalledRuntimes_ICLRMetaHost
+
+type Next_IEnumUnknown = IEnumUnknown -> Word32 ->  Ptr InterfacePtr -> Ptr Word32 -> IO HResult
+foreign import stdcall "dynamic" makeNext_IEnumUnknown :: FunPtr Next_IEnumUnknown -> Next_IEnumUnknown
+
+type GetVersionString_ICLRRuntimeInfo = ICLRRuntimeInfo -> LPCWSTR -> Ptr DWORD -> IO HResult
+foreign import stdcall "dynamic" makeGetVersionString_ICLRRuntimeInfo :: FunPtr GetVersionString_ICLRRuntimeInfo -> GetVersionString_ICLRRuntimeInfo
+
 
 -- | 'start_ICorRuntimeHost' calls the Start method of the given ICorRuntimeHost interface.
 start_ICorRuntimeHost this = do
