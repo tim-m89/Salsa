@@ -35,7 +35,8 @@ parseRef :: Parser ImportRequest
 parseRef = do
     string "reference"
     some space
-    t <- takeText
+    t <- takeTill isEndOfLine
+    many space
     return $ RequestRef t
 
 parseType :: Parser ImportRequest
