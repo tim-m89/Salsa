@@ -37,6 +37,10 @@ instance Show (Obj a) where
     show (Obj id _) = "Object(" ++ show id ++ ")"
     show ObjNull    = "Object(null)"
 
+instance Eq (Obj a) where
+    (==) (Obj id1 _) (Obj id2 _) = id1 == id2
+    (/=) (Obj id1 _) (Obj id2 _) = id1 /= id2
+
 -- Labels for elementary .NET types
 data Object_ = Object_                  -- System.Object
 data Type_   = Type_                    -- System.Type
