@@ -617,13 +617,16 @@ namespace Salsa
             return !t.IsPrimitive && t != typeof(void) && t != typeof(string);
         }
 
+
+        private static bool isMono = Type.GetType ("Mono.Runtime") != null;
+
         /// <summary>
         /// Returns the type of 'MarshalAs' attribute that should be attached to 
         /// parameters/results of the given type, if any.
         /// </summary>
         private static UnmanagedType? MarshalTypeAs(Type t)
         {
-            if (t == typeof(string))
+            if (!isMono && t == typeof(string))
                 return UnmanagedType.LPWStr;
             else
                 return null;
