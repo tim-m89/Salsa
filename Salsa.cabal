@@ -82,7 +82,7 @@ Library
 
   if !os(windows) || flag(use_mono)
 
-    Build-Depends: base, bytestring, file-embed
+    Build-Depends: base==4.*, bytestring, file-embed
 
     Cpp-options: -DMONO
     cc-options: -DMONO
@@ -91,7 +91,7 @@ Library
 
   else
 
-    Build-Depends: base, Win32, bytestring, file-embed
+    Build-Depends: base==4.*, Win32, bytestring, file-embed
 
     Extra-Libraries: oleaut32, ole32
 
