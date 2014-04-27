@@ -4,7 +4,7 @@ Name:           Salsa
 Version:        0.2.0.0
 Build-Type:     Simple
 
-Category:       Foreign
+Category:       Foreign, .NET
 
 Synopsis:       A .NET Bridge for Haskell
 Description:
