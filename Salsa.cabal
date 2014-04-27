@@ -1,10 +1,11 @@
-Cabal-Version:  >= 1.2
+Cabal-Version:  >= 1.10
 
 Name:           Salsa
-Version:        0.1.0.2
+Version:        0.2.0.0
 Build-Type:     Simple
 
 Category:       Foreign
+
 Synopsis:       A .NET Bridge for Haskell
 Description:
   Salsa is an experimental Haskell library and code generator that allows
@@ -13,24 +14,23 @@ Description:
   object model in the Haskell type system.
 
 Author:         Andrew Appleyard
-Maintainer:     andrew.appleyard@gmail.com
+Maintainer:     tim.matthews7@gmail.com
 Homepage:       http://haskell.org/haskellwiki/Salsa
 
 License:        BSD3
 License-File:   LICENSE
-Copyright:      (c) 2007-2008 Andrew Appleyard
+Copyright:      (c) 2007-2014 Andrew Appleyard, Tim Matthews
 
 Stability:      Experimental
-Tested-With:    GHC==6.8.3
+Tested-With:    GHC==7.6.3
 
 
 Extra-Source-Files:
   README
 
   Driver/README
-  Driver/Driver.proj
   Driver/Driver.cs
-  Driver/Embed.hs
+  Driver/Salsa.dll
 
   Generator/README
   Generator/Generator.csproj
@@ -57,9 +57,28 @@ flag use_mono
     description: use mono instead of .Net
     default: False
 
+Source-Repository head
+    Type: git
+    Location: https://github.com/tim-m89/Salsa
+
 Library
-  
+  Default-Language: Haskell2010
+
   C-sources: Foreign/Salsa/salsa.c
+
+  Exposed-modules:
+      Foreign.Salsa
+      Foreign.Salsa.Binding
+
+  Other-Modules:
+      Foreign.Salsa.CLR,
+      Foreign.Salsa.Mono.CLRHost,
+      Foreign.Salsa.Win.CLRHost,
+      Foreign.Salsa.Common,
+      Foreign.Salsa.Core,
+      Foreign.Salsa.Resolver,
+      Foreign.Salsa.TypePrelude,
+      Foreign.Salsa.Driver
 
   if !os(windows) || flag(use_mono)
 
@@ -68,29 +87,11 @@ Library
     Cpp-options: -DMONO
     cc-options: -DMONO
 
-    Exposed-modules:
-      Foreign.Salsa
-      Foreign.Salsa.Binding
-
-    Other-Modules:
-      Foreign.Salsa.CLR, Foreign.Salsa.Mono.CLRHost, Foreign.Salsa.Common,
-      Foreign.Salsa.Core, Foreign.Salsa.Resolver, Foreign.Salsa.TypePrelude,
-      Foreign.Salsa.Driver
-
     Extra-Libraries: glib-2.0, mono-2.0
 
   else
 
     Build-Depends: base, Win32, bytestring, file-embed
-
-    Exposed-modules:
-      Foreign.Salsa
-      Foreign.Salsa.Binding
-
-    Other-Modules:
-      Foreign.Salsa.CLR, Foreign.Salsa.Win.CLRHost, Foreign.Salsa.Common,
-      Foreign.Salsa.Core, Foreign.Salsa.Resolver, Foreign.Salsa.TypePrelude,
-      Foreign.Salsa.Driver
 
     Extra-Libraries: oleaut32, ole32
 
