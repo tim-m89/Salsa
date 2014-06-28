@@ -189,14 +189,13 @@ type instance ListToTuple (a ::: b ::: c ::: d ::: e ::: TNil) = (a,b,c,d,e)
 -- Type reflection (connects Haskell types to .NET types)
 --
 
--- | The class 'Typeable' provides access to the underlying .NET type that is 
+-- | The class 'SalsaForeignType' provides access to the underlying .NET type that is 
 --   associated with a given Haskell type.
-class Typeable t where 
+class SalsaForeignType t where 
     -- | Returns the .NET System.Type instance for values of type 't'.
     --   The value of 't' is not evaluated by the function.
-    typeOf :: t -> Obj Type_
+    foreignTypeOf :: t -> Obj Type_
 
--- TODO: Perhaps rename Typeable to Type or SalsaType or Target?
 
 
 --

@@ -317,16 +317,16 @@ namespace Generator
 
 
             //
-            // Write a Salsa.Typeable instance for this class
+            // Write a Salsa.SalsaForeignType instance for this class
             //
             // Note: Type.GetType always returns the same instance for a given type, so it is 
             //       safe to use 'unsafePerformIO' below.
             //
-            w.WriteLine("instance Typeable {0} where", classLabel);
-            w.WriteLine("  typeOf _ = unsafePerformIO $ type_GetType \"{0}\"", targetType.AssemblyQualifiedName);
+            w.WriteLine("instance SalsaForeignType {0} where", classLabel);
+            w.WriteLine("  foreignTypeOf _ = unsafePerformIO $ type_GetType \"{0}\"", targetType.AssemblyQualifiedName);
             w.WriteLine();
 
-            // TODO: Cache result of 'typeOf' in an IORef?
+            // TODO: Cache result of 'foreignTypeOf' in an IORef?
 
             {
                 //

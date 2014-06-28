@@ -60,30 +60,30 @@ type_MakeArrayType_stub = make_Type_MakeArrayType_stub $ unsafePerformIO $ getMe
     "System.Int32"
 
 -- 
--- Typeable instances for primitive types
+-- SalsaForeignType instances for primitive types
 --
 
-instance Typeable Int32  where typeOf _ = typeOfString "System.Int32"
-instance Typeable String where typeOf _ = typeOfString "System.String"
-instance Typeable Bool   where typeOf _ = typeOfString "System.Boolean"
-instance Typeable Double where typeOf _ = typeOfString "System.Double"
+instance SalsaForeignType Int32  where foreignTypeOf _ = foreignTypeFromString "System.Int32"
+instance SalsaForeignType String where foreignTypeOf _ = foreignTypeFromString "System.String"
+instance SalsaForeignType Bool   where foreignTypeOf _ = foreignTypeFromString "System.Boolean"
+instance SalsaForeignType Double where foreignTypeOf _ = foreignTypeFromString "System.Double"
 
-typeOfString :: String -> Obj Type_
-typeOfString s = unsafePerformIO $ do
+foreignTypeFromString :: String -> Obj Type_
+foreignTypeFromString s = unsafePerformIO $ do
 --    putStrLn $ "typeOfString: " ++ s
     type_GetType s
 --    marshalMethod1s type_GetType_stub undefined undefined s
 
--- Define the typeOf function for arrays by first calling typeOf on the element type,
+-- Define the foreignTypeOf function for arrays by first calling foreignTypeOf on the element type,
 -- and then using the Type.MakeArrayType method to return the associated one-dimensional
 -- array type:
-instance Typeable t => Typeable (Arr t) where
-  typeOf _ = unsafePerformIO $
-    marshalMethod1i type_MakeArrayType_stub (typeOf (undefined :: t)) undefined (1 :: Int32)
+instance SalsaForeignType t => SalsaForeignType (Arr t) where
+  foreignTypeOf _ = unsafePerformIO $
+    marshalMethod1i type_MakeArrayType_stub (foreignTypeOf (undefined :: t)) undefined (1 :: Int32)
     -- Note: this function requires ScopedTypeVariables
 
--- Define typeOf for reference types in terms of the associated static type.
-instance Typeable t => Typeable (Obj t) where
-  typeOf _ = typeOf (undefined :: t)
+-- Define foreignTypeOf for reference types in terms of the associated static type.
+instance SalsaForeignType t => SalsaForeignType (Obj t) where
+  foreignTypeOf _ = foreignTypeOf (undefined :: t)
 
 -- vim:set sw=4 ts=4 expandtab:
