@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs, TypeFamilies, MultiParamTypeClasses, EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification, FlexibleContexts, TypeOperators #-}
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances, CPP, ForeignFunctionInterface #-}
+{-# LANGUAGE UndecidableInstances, CPP, ForeignFunctionInterface, DataKinds, PolyKinds, GADTs #-}
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
@@ -53,8 +53,8 @@ type family Candidates t m
 
 -- Calls 'ResolveMember', converting argument tuples to/from type-level lists,
 -- and passing it the appropriate list of candidate signatures.
-type family Resolve t m args
-type instance Resolve t m args = ListToTuple (ResolveMember (TupleToList args) (Candidates t m))
+type family Resolve t m args where
+    Resolve t m args = ListToTuple (ResolveMember (TupleToList args) (Candidates t m))
 
 -- | 'Invoker' provides type-based dispatch to method implementations, and 
 --   a constrainted result type for method invocations.
@@ -161,28 +161,24 @@ set t ops = mapM_ applyOp ops
 -- | 'TupleToList t' is the type-level list representation of the tuple @t@
 --   containing marshalable types.  This allows arguments to .NET members to
 --   be passed as tuples, which have a much neater syntax than lists.
-type family TupleToList t
-type instance TupleToList ()             = TNil
-type instance TupleToList (Obj x)        = Obj x  ::: TNil
-type instance TupleToList String         = String ::: TNil
-type instance TupleToList Int32          = Int32  ::: TNil
-type instance TupleToList Bool           = Bool   ::: TNil
-type instance TupleToList Double         = Double ::: TNil
-type instance TupleToList (a,b)          = a ::: b ::: TNil
-type instance TupleToList (a,b,c)        = a ::: b ::: c ::: TNil
-type instance TupleToList (a,b,c,d)      = a ::: b ::: c ::: d ::: TNil
-type instance TupleToList (a,b,c,d,e)    = a ::: b ::: c ::: d ::: e ::: TNil
+type family TupleToList t where
+    TupleToList (a,b,c,d,e)    = a ::: b ::: c ::: d ::: e ::: TNil
+    TupleToList (a,b,c,d)      = a ::: b ::: c ::: d ::: TNil
+    TupleToList (a,b,c)        = a ::: b ::: c ::: TNil
+    TupleToList (a,b)          = a ::: b ::: TNil
+    TupleToList (a)            = a ::: TNil
+    TupleToList ()             = TNil
 -- ...
 
 -- | 'ListToTuple l' is the tuple type associated with the type-level list @l@.
-type family ListToTuple t
-type instance ListToTuple (Error x)                            = Error x -- propagate errors
-type instance ListToTuple TNil                                 = ()
-type instance ListToTuple (a ::: TNil)                         = a
-type instance ListToTuple (a ::: b ::: TNil)                   = (a,b) 
-type instance ListToTuple (a ::: b ::: c ::: TNil)             = (a,b,c)
-type instance ListToTuple (a ::: b ::: c ::: d ::: TNil)       = (a,b,c,d)
-type instance ListToTuple (a ::: b ::: c ::: d ::: e ::: TNil) = (a,b,c,d,e)
+type family ListToTuple t where
+    ListToTuple (Error x)                            = Error x -- propagate errors
+    ListToTuple TNil                                 = ()
+    ListToTuple (a ::: TNil)                         = a
+    ListToTuple (a ::: b ::: TNil)                   = (a,b) 
+    ListToTuple (a ::: b ::: c ::: TNil)             = (a,b,c)
+    ListToTuple (a ::: b ::: c ::: d ::: TNil)       = (a,b,c,d)
+    ListToTuple (a ::: b ::: c ::: d ::: e ::: TNil) = (a,b,c,d,e)
 -- ...
 
 --
