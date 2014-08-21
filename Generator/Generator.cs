@@ -37,9 +37,6 @@ namespace Generator
         /// </summary>
         private Dictionary<string, long> _uniqueIds = new Dictionary<string, long>();
 
-        private int _typeCodeMaxValue = 15;
-        private int _typeCodeValue = 7; // Leave first 7 codes available for primitive types
-
         /// <summary>
         /// Set of types that are required by the types generated so far.
         /// </summary>
@@ -69,41 +66,6 @@ namespace Generator
                 _uniqueIds.Add(key, id);
                 return id;
             }
-        }
-
-        /// <summary>
-        /// Returns a unique type-level list of booleans, which can be used as a type code.
-        /// </summary>
-        private string GetNextTypeCode()
-        {
-            const int encodingBase = 15; 
-            // Note: This is not 16, thus leaving 'DF' available to use as a delimiter in type codes
-            //       for parameterised types (like arrays).
-
-            // Build a string for type code (as a Haskell type)
-            StringBuilder s = new StringBuilder();
-            int x = _typeCodeValue;
-            int b = _typeCodeMaxValue;
-            while (b > 1)
-            {
-                s.AppendFormat("{0} ::: ", 
-                    new string[] { 
-                        "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", 
-                        "D8", "D9", "DA", "DB", "DC", "DD", "DE", "DF" }[x % encodingBase]);
-                x /= encodingBase;
-                b /= encodingBase; 
-            }
-            s.Append("TNil");
-
-            // Obtain the next type code
-            _typeCodeValue += 1;
-            if (_typeCodeValue == _typeCodeMaxValue)
-            {
-                _typeCodeValue = 0;
-                _typeCodeMaxValue *= encodingBase;
-            }
-
-            return s.ToString();
         }
 
         private void RequestAll(Type t)
@@ -591,14 +553,6 @@ namespace Generator
 
             foreach (Type supertype in supertypes)
                 RequireType(supertype);
-
-            //
-            // Type code
-            //
-            string typeCode = GetNextTypeCode();
-            w.WriteLine("type instance TyCode {0} = {1}", ToHaskellType(targetType), typeCode);
-            w.WriteLine("type instance FromTyCode ({1}) = {0}", ToHaskellType(targetType), typeCode); // EXPERIMENTAL
-            w.WriteLine();
 
 //            if (targetType == typeof(System.Array))
 //            {
