@@ -48,16 +48,13 @@ type family BoolEq x y where
     BoolEq TFalse  TTrue   = TFalse
     BoolEq TTrue   TFalse  = TFalse
 
-type family ListEqq x y xs ys where
-    ListEqq a b c d = BoolEq a b
-    
 -- | 'ListEq xs ys' is true if the given type-level boolean lists contain 
 --   the same boolean values, and false otherwise.
 type family    ListEq xs          ys where
     ListEq TNil        TNil        = TTrue
     ListEq (x ::: xs)  TNil        = TFalse
     ListEq TNil        (x ::: xs)  = TFalse
-    ListEq (x ::: xs)  (y ::: ys)  = ListEqq x y xs ys
+    ListEq (x ::: xs)  (y ::: ys)  = TAnd (BoolEq x y) (ListEq xs ys)
 
 -- | @'FromSingleton' xs def@ returns the only element of the list @xs@ (if it is a
 --   single element list), otherwise it returns the default value @def@.
