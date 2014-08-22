@@ -45,10 +45,10 @@ What's in the package:
 
 Requirements:
 
-  * GHC 6.8
+  * GHC 7.8
   
-    Salsa makes extensive use of type families and thus requires at least
-    version 6.8 of GHC.
+    Salsa makes use of extensions that have only been available since version
+    7.8 of GHC.
 
   * Microsoft .NET Framework 3.5 / Mono
 
