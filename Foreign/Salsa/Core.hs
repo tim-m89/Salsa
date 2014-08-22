@@ -166,8 +166,8 @@ type family TupleToList t where
     TupleToList (a,b,c,d)      = a ::: b ::: c ::: d ::: TNil
     TupleToList (a,b,c)        = a ::: b ::: c ::: TNil
     TupleToList (a,b)          = a ::: b ::: TNil
-    TupleToList (a)            = a ::: TNil
     TupleToList ()             = TNil
+    TupleToList (a)            = a ::: TNil
 -- ...
 
 -- | 'ListToTuple l' is the tuple type associated with the type-level list @l@.
