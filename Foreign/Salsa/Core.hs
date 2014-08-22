@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs, TypeFamilies, MultiParamTypeClasses, EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification, FlexibleContexts, TypeOperators #-}
 {-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances, FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances, CPP, ForeignFunctionInterface, DataKinds, PolyKinds, GADTs #-}
+{-# LANGUAGE UndecidableInstances, CPP, ForeignFunctionInterface, DataKinds, PolyKinds #-}
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
