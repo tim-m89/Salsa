@@ -135,8 +135,8 @@ setupDomain = withCString "Salsa.config" $ \configFile-> do
 
 loadDriverAndBoot :: IO (FunPtr (CString -> IO (FunPtr a)))
 loadDriverAndBoot = do
-    loadDriver
     setupDomain
+    loadDriver
     salsa <- getSalsa
     method <- getMethodFromNameImage "Salsa.Driver:Boot()" salsa
     if method == nullPtr then
