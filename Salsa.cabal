@@ -1,7 +1,7 @@
 Cabal-Version:  >= 1.10
 
 Name:           Salsa
-Version:        0.2.0.1
+Version:        0.2.0.2
 Build-Type:     Simple
 
 Category:       Foreign, .NET
