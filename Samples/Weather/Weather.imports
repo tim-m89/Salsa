@@ -1,4 +1,4 @@
-reference C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.dll
+reference C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.dll
 System.Console: WriteLine
 System.Net.WebClient: DownloadStringAsync, DownloadStringCompleted, DownloadString, DownloadStringCompletedEventHandler
 System.Net.DownloadStringCompletedEventArgs: Result, UserState

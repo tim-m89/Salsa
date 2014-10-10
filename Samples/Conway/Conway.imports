@@ -1,7 +1,7 @@
-reference C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.dll
-reference C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\PresentationCore.dll
-reference C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\PresentationFramework.dll 
-reference C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\WindowsBase.dll
+reference C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.dll
+reference C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\PresentationCore.dll
+reference C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\PresentationFramework.dll 
+reference C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\WindowsBase.dll
 
 System.Windows.Controls.Primitives.ToggleButton: IsChecked
 
