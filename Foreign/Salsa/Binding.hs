@@ -44,7 +44,7 @@ foreign import ccall "dynamic" make_Type_GetType_stub :: FunPtr Type_GetType_stu
 {-# NOINLINE type_GetType_stub #-}
 type_GetType_stub :: Type_GetType_stub
 type_GetType_stub = make_Type_GetType_stub $ unsafePerformIO $ getMethodStub
-    "System.Type, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" "GetType"
+    "System.Type, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" "GetType"
     "System.String;System.Boolean"
 
 type_GetType typeName = marshalMethod2s type_GetType_stub undefined undefined (typeName, True)
@@ -56,7 +56,7 @@ foreign import ccall "dynamic" make_Type_MakeArrayType_stub :: FunPtr Type_MakeA
 {-# NOINLINE type_MakeArrayType_stub #-}
 type_MakeArrayType_stub :: Type_MakeArrayType_stub
 type_MakeArrayType_stub = make_Type_MakeArrayType_stub $ unsafePerformIO $ getMethodStub
-    "System.Type, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" "MakeArrayType"
+    "System.Type, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" "MakeArrayType"
     "System.Int32"
 
 -- 
