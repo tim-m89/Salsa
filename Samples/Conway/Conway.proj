@@ -33,7 +33,7 @@
   <!-- Run GHC to build the main program -->
   <Target Name="Build"
           DependsOnTargets="GenerateBindings">
-    <Exec Command="ghc --make $(Module) -fglasgow-exts -threaded" />
+    <Exec Command="ghc --make $(Module) -XMagicHash -threaded" />
   </Target>
 
   <Target Name="Clean" >
