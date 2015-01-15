@@ -14,46 +14,14 @@ extern "C" {
 
 #include <stdint.h>
 #include <mono/metadata/appdomain.h>
-#include <pthread.h>
 
-typedef struct {              //layout of structures can be found in mono's domain-internals.h
-	MonoObject object;
-	MonoString *application_base;
-	MonoString *application_name;
-	MonoString *cache_path;
-	MonoString *configuration_file;
-	MonoString *dynamic_base;
-
-} MonoAppDomainSetupInternal;
-
-
-typedef struct {
-	uint32_t        depth;
-	pthread_mutex_t mutex;
-
-} CRITICAL_SECTION;
-
-
-typedef struct {
-	CRITICAL_SECTION            lock;
-	void                        *mp;
-	void                        *code_mp;
-	MonoAppDomainSetupInternal  *setup;
-	void                        *domain;
-	void                        *default_context;
-
-} MonoDomainInternal;
 
 
 void setupDomain(MonoDomain *domain, char *baseDir, char *configFile) //workaround for an issue that was introduced since Mono 3.0 but yet unresolved: https://bugzilla.xamarin.com/show_bug.cgi?id=12669
 {
-  MonoAppDomainSetupInternal *appDomSetup;
-  appDomSetup = ((MonoDomainInternal*)domain)->setup; 
-  if(appDomSetup != NULL)
-  {
-    appDomSetup->application_base = mono_string_new(domain, baseDir);
-    appDomSetup->configuration_file = mono_string_new(domain, configFile);
-  }
+  // Mono issue introduced in 3.0 (https://bugzilla.xamarin.com/show_bug.cgi?id=12669) has been fixed (https://github.com/mono/mono/commit/57f5187ad29a7913f083a659ea77d90eb8bad4d4)
+  // Using this instead of rolling our own means we depend on >= Mono-3.8
+  mono_domain_set_config(domain, baseDir, configFile);
 }
 
 #else
