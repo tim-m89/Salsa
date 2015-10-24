@@ -1060,10 +1060,10 @@ namespace Salsa
             typeof(object).GetConstructor(Type.EmptyTypes);
 
         public static readonly MethodInfo Marshal_GetDelegateForFunctionPointer =
-            typeof(Marshal).GetMethod("GetDelegateForFunctionPointer");
+            typeof(Marshal).GetMethod("GetDelegateForFunctionPointer", new Type[] { typeof(IntPtr), typeof(Type) });
 
         public static readonly MethodInfo Marshal_GetFunctionPointerForDelegate =
-            typeof(Marshal).GetMethod("GetFunctionPointerForDelegate");
+            typeof(Marshal).GetMethod("GetFunctionPointerForDelegate", new Type[]{ typeof(Delegate) });
 
         public static readonly MethodInfo Marshal_StringToHGlobalUni =
             typeof(Marshal).GetMethod("StringToHGlobalUni");
