@@ -1,0 +1,22 @@
+Cabal-version:       >=1.10
+
+Name:                Conway
+Version:             0.1.0.0
+Build-type:          Simple
+
+Category:            Foreign, .NET
+
+Author:              Andrew Appleyard
+Maintainer:          tim.matthews7@gmail.com
+Homepage:            http://haskell.org/haskellwiki/Salsa
+
+License:             BSD3
+License-file:        LICENSE
+Copyright:           (c) 2007-2015 Andrew Appleyard, Tim Matthews
+
+Executable Conway
+  Default-language:    Haskell2010
+
+  Main-is:             Conway.hs
+
+  Build-depends:       base, Salsa, array
