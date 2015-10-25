@@ -19,7 +19,7 @@ Homepage:       http://haskell.org/haskellwiki/Salsa
 
 License:        BSD3
 License-File:   LICENSE
-Copyright:      (c) 2007-2014 Andrew Appleyard, Tim Matthews
+Copyright:      (c) 2007-2015 Andrew Appleyard, Tim Matthews
 
 Stability:      Experimental
 Tested-With:    GHC==7.6.3
