@@ -137,7 +137,37 @@ namespace Generator
                     {
                         if (sides.Length != 2)
                             throw new Exception("Must specify assembly name after 'reference'");
-                        references.Add(Assembly.LoadFile(Path.GetFullPath(sides[1])));
+
+                        string assemNameOrPath = sides[1];
+                        Assembly assem = null;
+
+                        bool failedToLoad = false;
+
+                        try
+                        {
+                          assem = Assembly.LoadFile(Path.GetFullPath(assemNameOrPath));
+                        }
+                        catch
+                        {
+                          failedToLoad = true;
+                        }
+
+                        if (failedToLoad)
+                          try
+                          {
+                            failedToLoad = false;
+                            assem = Assembly.Load(assemNameOrPath);
+                          }
+                          catch
+                          {
+                            failedToLoad = true;
+                          }
+
+                        if (failedToLoad)
+                          throw new Exception("Failed to load reference: '" + assemNameOrPath + "'");
+
+                        references.Add(assem);
+
                     }
                     else
                     {
