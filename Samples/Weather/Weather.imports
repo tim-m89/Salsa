@@ -1,4 +1,5 @@
-reference C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.dll
+reference System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
 System.Console: WriteLine
 System.Net.WebClient: DownloadStringAsync, DownloadStringCompleted, DownloadString, DownloadStringCompletedEventHandler
 System.Net.DownloadStringCompletedEventArgs: Result, UserState
