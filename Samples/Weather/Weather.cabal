@@ -11,7 +11,6 @@ Maintainer:          tim.matthews7@gmail.com
 Homepage:            http://haskell.org/haskellwiki/Salsa
 
 License:             BSD3
-License-file:        LICENSE
 Copyright:           (c) 2007-2015 Andrew Appleyard, Tim Matthews
 
 Executable Weather
