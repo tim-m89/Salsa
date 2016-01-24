@@ -1,9 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface, TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances, ScopedTypeVariables, CPP #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, ScopedTypeVariables, CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
--- 
+--
 -- Exports data types and functions required by the generated binding files.
 --
 -----------------------------------------------------------------------------
@@ -11,7 +11,6 @@ module Foreign.Salsa.Binding (
     module Foreign.Salsa.Common,
     module Foreign.Salsa.Core,
     module Foreign.Salsa.CLR,
-    module Foreign.Salsa.TypePrelude,
     module Foreign.Salsa.Resolver,
     FunPtr, unsafePerformIO, liftM,
     type_GetType
@@ -20,7 +19,6 @@ module Foreign.Salsa.Binding (
 import Foreign.Salsa.Common
 import Foreign.Salsa.Core
 import Foreign.Salsa.CLR
-import Foreign.Salsa.TypePrelude
 import Foreign.Salsa.Resolver
 
 import System.IO.Unsafe ( unsafePerformIO )

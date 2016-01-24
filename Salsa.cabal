@@ -75,7 +75,6 @@ Library
       Foreign.Salsa.Common,
       Foreign.Salsa.Core,
       Foreign.Salsa.Resolver,
-      Foreign.Salsa.TypePrelude,
       Foreign.Salsa.Driver
 
   if !os(windows) || flag(use_mono)

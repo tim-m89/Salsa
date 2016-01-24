@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
--- 
+--
 -- Exports data types and functions that are used throughout the bridge
 -- implementation.
 --
@@ -20,11 +20,10 @@ module Foreign.Salsa.Common (
 
 import Foreign hiding (new, newForeignPtr)
 
-import Foreign.Salsa.TypePrelude
 import Foreign.Salsa.CLR
 
 -- | @Obj a@ represents a .NET object instance of type @a@.
-data Obj a = Obj !ObjectId !(ForeignPtr ()) 
+data Obj a = Obj !ObjectId !(ForeignPtr ())
            | ObjNull
 
 data Null

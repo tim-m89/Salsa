@@ -236,7 +236,7 @@ namespace Generator
                         _requestedMembers.Add(requestedType, new List<string>());
                 }
 
-                w.WriteLine("{-# LANGUAGE ForeignFunctionInterface, MultiParamTypeClasses, FlexibleInstances, TypeFamilies, TypeOperators, TypeSynonymInstances, UndecidableInstances #-}");
+                w.WriteLine("{-# LANGUAGE ForeignFunctionInterface, MultiParamTypeClasses, FlexibleInstances, TypeFamilies, TypeOperators, TypeSynonymInstances, UndecidableInstances, DataKinds #-}");
 
                 w.WriteLine("module {0} (", "Bindings");
                 w.WriteLine("  module Labels");
@@ -264,7 +264,7 @@ namespace Generator
 
             using (w = File.CreateText(Path.Combine(outputPath, "Labels.hs")))
             {
-                w.WriteLine("{-# LANGUAGE EmptyDataDecls #-}"); 
+                w.WriteLine("{-# LANGUAGE EmptyDataDecls, FlexibleContexts #-}");
 
                 w.WriteLine("module Labels where");
                 w.WriteLine("import Foreign.Salsa (invoke)");
@@ -576,10 +576,10 @@ namespace Generator
                     supertypes.Remove(t);
             }
 
-            w.WriteLine("type instance SupertypesOf {0} = {1}", 
+            w.WriteLine("type instance SupertypesOf {0} = {1}",
                 ToHaskellType(targetType),
-                Util.JoinSuffix(" ::: ", Enumerable.Select<Type, string>(supertypes,
-                    delegate(Type t) { return ToHaskellType(t); }), "TNil"));
+                Util.JoinSuffix(" ': ", Enumerable.Select<Type, string>(supertypes,
+                    delegate(Type t) { return ToHaskellType(t); }), "'[]"));
 
             foreach (Type supertype in supertypes)
                 RequireType(supertype);
@@ -684,8 +684,8 @@ namespace Generator
             // Output the parameter lists for the members of the method group
             w.WriteLine("type instance Candidates {0} {1} = {2}",
                 target, label,
-                Util.JoinSuffix(" ::: ", Enumerable.Select<MemberInfo, string>(members,
-                    delegate(MemberInfo mi) { return ToListType(GetParameters(mi)); }), "TNil"));
+                Util.JoinSuffix(" ': ", Enumerable.Select<MemberInfo, string>(members,
+                    delegate(MemberInfo mi) { return ToListType(GetParameters(mi)); }), "'[]"));
 
             // Output instances for invoking each method group member
             foreach (MemberInfo mi in members)
@@ -708,8 +708,8 @@ namespace Generator
             // Output the parameter lists for the constructors
             w.WriteLine("type instance Candidates {0} {1} = {2}",
                 target, label,
-                Util.JoinSuffix(" ::: ", Enumerable.Select<ConstructorInfo, string>(members,
-                    delegate(ConstructorInfo ci) { return ToListType(ci.GetParameters()); }), "TNil"));
+                Util.JoinSuffix(" ': ", Enumerable.Select<ConstructorInfo, string>(members,
+                    delegate(ConstructorInfo ci) { return ToListType(ci.GetParameters()); }), "'[]"));
 
             // Output instances for invoking each constructor
             foreach (ConstructorInfo ci in members)
@@ -960,7 +960,7 @@ namespace Generator
                 // Ensure that an invoker is generated for invoking the label with '#'
                 ToInvoker(field.Name);
 
-                w.WriteLine("type instance Candidates {0} {1} = TNil ::: TNil", target, label);
+                w.WriteLine("type instance Candidates {0} {1} = '[]", target, label);
 
                 w.WriteLine("instance Invoker {0} {1} () where", target, label);
                 w.WriteLine("  type Result {0} {1} () = {2}", target, label, ToHaskellType(field.FieldType));
@@ -1047,8 +1047,8 @@ namespace Generator
         /// </summary>
         private string ToListType(ParameterInfo[] ts)
         {
-            return "(" + Util.JoinSuffix(" ::: ", Enumerable.Select<ParameterInfo, string>(ts,
-                delegate(ParameterInfo pi) { return ToHaskellType(pi.ParameterType); } ), "TNil") + ")";
+            return "(" + Util.JoinSuffix(" ': ", Enumerable.Select<ParameterInfo, string>(ts,
+                delegate(ParameterInfo pi) { return ToHaskellType(pi.ParameterType); } ), "'[]") + ")";
         }
 
         /// <summary>

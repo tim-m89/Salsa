@@ -5,9 +5,12 @@
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
--- 
+--
 -----------------------------------------------------------------------------
 module Foreign.Salsa.Core where
+
+import Data.Type.Bool
+import Data.Type.Equality
 
 import Unsafe.Coerce (unsafeCoerce)
 import System.IO.Unsafe ( unsafePerformIO )
@@ -17,7 +20,6 @@ import Foreign hiding (new, newForeignPtr, unsafePerformIO)
 import Foreign.Concurrent (newForeignPtr)
 
 import Foreign.Salsa.Common
-import Foreign.Salsa.TypePrelude
 import Foreign.Salsa.Resolver
 import Foreign.Salsa.CLR
 
@@ -49,14 +51,14 @@ isNull _       = False
 --   method group, given the type @t@ and method name @m@.  The overload
 --   resolution algorithm chooses the appropriate member of the method group
 --   (from this list) according to the argument types.
-type family Candidates t m
+type family Candidates t m :: [[*]]
 
 -- Calls 'ResolveMember', converting argument tuples to/from type-level lists,
 -- and passing it the appropriate list of candidate signatures.
 type family Resolve t m args where
     Resolve t m args = ListToTuple (ResolveMember (TupleToList args) (Candidates t m))
 
--- | 'Invoker' provides type-based dispatch to method implementations, and 
+-- | 'Invoker' provides type-based dispatch to method implementations, and
 --   a constrainted result type for method invocations.
 class Invoker t m args where 
     type Result t m args
@@ -118,13 +120,13 @@ infix 0 :==, :=, :=>, :~, :+, :-, :+>, :->
 data AttrOp t
     = forall p. (Prop  t p) => p :== (PropST t p)               -- assign value to property (monotyped)
     | forall p v. (Prop t p, 
-                   ConvertsTo v (PropST t p) ~ TTrue,
+                   ConvertsTo v (PropST t p) ~ True,
                    Coercible  v (PropST t p)) =>
                                p := v                           -- assign value to property (w/ implicit conversion)
     | forall p v. (Prop  t p,
-                 ConvertsTo v (PropST t p) ~ TTrue,
+                 ConvertsTo v (PropST t p) ~ True,
                  Coercible  v (PropST t p)) =>
-                               p :=> IO v                       -- assign result of IO action to property 
+                               p :=> IO v                       -- assign result of IO action to property
     | forall p. (Prop  t p) => p :~  (PropGT t p -> PropST t p) -- update property
     | forall e. (Event t e) => e :+  (EventT t e)               -- add event listener
     | forall e. (Event t e) => e :-  (EventT t e)               -- remove event listener
@@ -152,7 +154,7 @@ set t ops = mapM_ applyOp ops
     -- Note: a lexically scoped type variable is required in the definition of this
     -- function.  Both the 'forall t.' in the type signature for 'set' and the the
     -- type signature for 'applyOp' are required to ensure that the 't' variable
-    -- used in 'set' is the same 't' as that used in 'applyOp'.  Without the scoped 
+    -- used in 'set' is the same 't' as that used in 'applyOp'.  Without the scoped
     -- type variable, GHC is unable to deduce the desired Prop instance for the call
     -- to 'setProp'.
     --
@@ -161,24 +163,24 @@ set t ops = mapM_ applyOp ops
 -- | 'TupleToList t' is the type-level list representation of the tuple @t@
 --   containing marshalable types.  This allows arguments to .NET members to
 --   be passed as tuples, which have a much neater syntax than lists.
-type family TupleToList t where
-    TupleToList (a,b,c,d,e)    = a ::: b ::: c ::: d ::: e ::: TNil
-    TupleToList (a,b,c,d)      = a ::: b ::: c ::: d ::: TNil
-    TupleToList (a,b,c)        = a ::: b ::: c ::: TNil
-    TupleToList (a,b)          = a ::: b ::: TNil
-    TupleToList ()             = TNil
-    TupleToList (a)            = a ::: TNil
+type family TupleToList t :: [*] where
+    TupleToList (a,b,c,d,e)    = a ': b ': c ': d ': e ': '[]
+    TupleToList (a,b,c,d)      = a ': b ': c ': d ': '[]
+    TupleToList (a,b,c)        = a ': b ': c ': '[]
+    TupleToList (a,b)          = a ': b ': '[]
+    TupleToList ()             = '[]
+    TupleToList (a)            = a ': '[]
 -- ...
 
 -- | 'ListToTuple l' is the tuple type associated with the type-level list @l@.
-type family ListToTuple t where
-    ListToTuple (Error x)                            = Error x -- propagate errors
-    ListToTuple TNil                                 = ()
-    ListToTuple (a ::: TNil)                         = a
-    ListToTuple (a ::: b ::: TNil)                   = (a,b) 
-    ListToTuple (a ::: b ::: c ::: TNil)             = (a,b,c)
-    ListToTuple (a ::: b ::: c ::: d ::: TNil)       = (a,b,c,d)
-    ListToTuple (a ::: b ::: c ::: d ::: e ::: TNil) = (a,b,c,d,e)
+type family ListToTuple (t :: [*]) where
+    ListToTuple ((Error x) ': '[])                   = Error x -- propagate errors
+    ListToTuple '[]                                 = ()
+    ListToTuple (a ': '[])                         = a
+    ListToTuple (a ': b ': '[])                   = (a,b) 
+    ListToTuple (a ': b ': c ': '[])             = (a,b,c)
+    ListToTuple (a ': b ': c ': d ': '[])       = (a,b,c,d)
+    ListToTuple (a ': b ': c ': d ': e ': '[]) = (a,b,c,d,e)
 -- ...
 
 --
@@ -238,7 +240,7 @@ instance (Coercible f t) => Coercible f (IO t)  where
 cast v = coerce v
 
 -- Checked implicit conversion:
-convert :: (Coercible from to, ConvertsTo from to ~ TTrue) => from -> to
+convert :: (Coercible from to, ConvertsTo from to ~ True) => from -> to
 convert v = coerce v
 
 -- TODO: Fix up the whole: coerce vs. cast vs. convert thing.
