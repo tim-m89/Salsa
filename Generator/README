@@ -29,5 +29,5 @@ Usage:
 
 Building:
 
-  Run 'msbuild' in the 'Generator' directory.
+  Run 'msbuild' (or 'xbuild' if using mono) in the 'Generator' directory
 

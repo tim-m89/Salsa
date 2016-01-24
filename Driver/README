@@ -6,7 +6,7 @@ To build the driver assembly, run within this directory:
 
 Or if mono:
 
-  gmcs -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
+  mcs -filealign:512 -optimize+ -out:Salsa.dll -target:library Driver.cs
 
 No further step are necessary. The file 'Salsa.dll' will be read and
 embedded from this directory automatically when building the Salsa library.
