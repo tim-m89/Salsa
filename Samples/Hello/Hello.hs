@@ -10,5 +10,7 @@ import Bindings
 main :: IO ()
 main = withCLR $ do
     _Console # _writeLine ("Hello .NET World!")
+    _Console # _writeLine (2 :: Int32)
+    _Console # _writeLine (3.14 :: Double)
 
 -- vim:set sw=4 ts=4 expandtab:
