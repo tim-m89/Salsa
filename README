@@ -1,6 +1,6 @@
 
                       Salsa: a .NET bridge for Haskell
-                     
+
   Salsa is an experimental Haskell library and code generator that allows
   Haskell programs to host the .NET runtime and interact with .NET libraries.
   It uses type families extensively to provide a type-safe mapping of the .NET
@@ -8,7 +8,7 @@
 
 What's in the package:
 
-  * 'Foreign' contains the Haskell library 'Foreign.Salsa'.  
+  * 'Foreign' contains the Haskell library 'Foreign.Salsa'.
 
     This library provides the Haskell-side interface to Salsa, including:
     functions to load the .NET runtime into the process, functions for
@@ -29,7 +29,7 @@ What's in the package:
     The generator is a C# program that creates Haskell modules from .NET
     metadata to provide type-safe access to the requested .NET classes and
     methods in .NET assembilies.
-    
+
     Note: the generator requires .NET 3.5 because it uses the 'System.Linq'
           namespace.
 
@@ -45,10 +45,15 @@ What's in the package:
 
 Requirements:
 
-  * GHC 7.8
-  
+  * GHC 7.8.x
+
     Salsa makes use of extensions that have only been available since version
     7.8 of GHC.
+
+    Additionally, GHC >= 7.10 cannot be used very effectively due to
+    implementation details of the type checker that make use of type families
+    too strict, and hence exhaust all the memory and/or take a long time when
+    trying to resolve from a small handful of method overloads.
 
   * Microsoft .NET Framework 3.5 / Mono
 
@@ -56,20 +61,24 @@ Requirements:
     this version.  Executables produced with Salsa however will run with just
     .NET 2.0 (provided that only .NET 2.0 assemblies are used by the program).
 
-    Salsa will not work with versions 1.0/1.1 of the .NET Framework
+    Salsa will not work with versions 1.0/1.1 of the .NET Framework.
+
+    Additionally, Microsoft .Net 4.0 introduced a new version of the runtime
+    separate from the 3.0 runtime, which currently has a major unresolved issue
+    in that it doesn't work when called from Haskell.
 
     Building with Mono and running Salsa executables on Mono works. Salsa
     will be built with Mono if not running on Windows or the flag 'use_mono'
-    is used when building with Cabal. 
+    is set to true.
 
 Building:
 
-  First build the Salsa.dll driver assembly. (See the README file within the 'Driver
+  * Build the Salsa.dll driver assembly (see the README file within the Driver
   directory).
-
-  Then build an install the Salsa library using Cabal as usual:
-
-    cabal install
+  * Build the generator (see it's associated README also).
+  * Run the generator against the import files for each of the sample executables
+  to be included
+  * Run stack build
 
 Authors:
 
