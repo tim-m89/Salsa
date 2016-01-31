@@ -1,0 +1,29 @@
+
+# Unfortunately, ghc versions >= 7.10 currently blow up the type checker when trying to compile samples
+# that use more than a few method overloads (Console.WriteLine has heaps hence helloworld cannot be compiled for example)
+resolver: ghc-7.8.4
+
+packages:
+
+# The main Salsa project. You'll need to build the driver dll first though.
+- '.'
+
+# Samples, comment / uncomment out which to include when running stack build. You'll need to run the generator against the imports file for each of these first
+#- Samples/Conway/
+- Samples/Hello/
+#- Samples/Weather/
+
+# This is used to embed the driver dll into the source at compile time
+extra-deps: [file-embed-0.0.9.1]
+
+# If you'd like to force mono (instead of .Net) usage when using windows, set this flag to true
+flags:
+  Salsa:
+    use_mono: false
+
+# Extra package databases containing global packages
+extra-package-dbs: []
+
+# Extra directories used by stack for building. When using mono we need to be able to locate the headers for example
+extra-include-dirs: [/usr/include/mono-2.0/]
+# extra-lib-dirs: [/path/to/dir]
