@@ -64,8 +64,8 @@ Requirements:
     Salsa will not work with versions 1.0/1.1 of the .NET Framework.
 
     Additionally, Microsoft .Net 4.0 introduced a new version of the runtime
-    separate from the 3.0 runtime, which currently has a major unresolved issue
-    in that it doesn't work when called from Haskell.
+    (<4.0 all used the separate 2.0 runtime), which currently has a major
+    unresolved issue in that it doesn't work when called from Haskell.
 
     Building with Mono and running Salsa executables on Mono works. Salsa
     will be built with Mono if not running on Windows or the flag 'use_mono'
