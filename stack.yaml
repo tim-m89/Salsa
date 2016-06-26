@@ -25,5 +25,5 @@ flags:
 extra-package-dbs: []
 
 # Extra directories used by stack for building. When using mono we need to be able to locate the headers for example
-extra-include-dirs: [/usr/include/mono-2.0/]
+#extra-include-dirs: [/usr/include/mono-2.0/]
 # extra-lib-dirs: [/path/to/dir]
