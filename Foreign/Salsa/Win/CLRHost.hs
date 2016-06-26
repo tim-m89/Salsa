@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, DoAndIfThenElse #-}
+{-# LANGUAGE ForeignFunctionInterface, DoAndIfThenElse, CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Licence     : BSD-style (see LICENSE)
@@ -274,14 +274,24 @@ invokeMember_Type this memberName = do
     f <- getInterfaceFunction 57 {- _Type.InvokeMember_3 -} makeInvokeMember_Type this
     withBStr memberName $ \memberName' ->
         with emptyVariant $ \resultPtr -> do
-            f this memberName' 256 {- BindingFlags.InvokeMethod -}
-                nullPtr 0 0 nullPtr resultPtr >>= checkHR "Type.InvokeMember"
+#if x86_64_HOST_ARCH
+            with emptyVariant $ \target ->
+              f this memberName' 256 nullPtr target nullPtr resultPtr >>= checkHR "Type.InvokeMember"
+#else
+            f this memberName' 256 nullPtr 0 0 nullPtr resultPtr >>= checkHR "Type.InvokeMember"
+#endif
             peek resultPtr
 
 -- Portability note: Type.InvokeMember accepts a by-value variant argument (as its fourth
---                   argument).  In the declaration below, this is encoded as two Word64
---                   arguments.
+--                   argument). GHC doesn't let us use that as an argument however, so
+--                   there's a calling convention dependent hack in the declarations below.
+--                   For Stdcall, this is encoded as two Word64 arguments.
+--                   For Win64, it would expect an argument of this size to be passed by reference.
+#if x86_64_HOST_ARCH
+type InvokeMember_Type = Type -> BStr -> Word32 -> Ptr () -> Ptr Variant -> Ptr () -> Ptr Variant -> IO HResult
+#else
 type InvokeMember_Type = Type -> BStr -> Word32 -> Ptr () -> Word64 -> Word64 -> Ptr () -> Ptr Variant -> IO HResult
+#endif
 foreign import stdcall "dynamic" makeInvokeMember_Type :: FunPtr InvokeMember_Type -> InvokeMember_Type
 
 
@@ -437,7 +447,6 @@ instance Storable Guid where
 --
 -- Variant Support
 --
-
 data Variant = Variant VarType Word64 deriving (Show, Eq)
 type VarType = Word16
 
@@ -448,7 +457,11 @@ varType_UI1   = 17
 emptyVariant = Variant varType_Empty 0
 
 instance Storable Variant where
+#if x86_64_HOST_ARCH
+    sizeOf    _ = 24
+#else
     sizeOf    _ = 16
+#endif
     alignment _ = 8
 
     peek ptr = do
