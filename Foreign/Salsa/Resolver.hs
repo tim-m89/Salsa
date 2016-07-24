@@ -32,13 +32,6 @@ type instance  IsRef t = Not (IsPrim t)
 -- FIXME: This definition of IsRef is incorrect.  String is a reference
 --        type (in .NET) but it is also a primitive bridge type.
 
--- | 'MemberEq m n' is true iff the members 'm' and 'n' have the same types.
-type family MemberEq (m::[*]) (n::[*]) :: Bool where
-    MemberEq '[]       '[]       = True
-    MemberEq '[]       (n ': ns) = False
-    MemberEq (m ': ms) '[]       = False
-    MemberEq (m ': ms) (n ': ns) = (m == n) && (MemberEq ms ns)
-
 -- | @'TyElem' t ts@ is true iff the type @t@ is present in the list @ts@
 --   (containing coded type representations).
 type family    TyElem (t1 :: *) (ts::[*]) :: Bool where
@@ -77,6 +70,10 @@ type family ResolveMember' (as::[*]) (fa::[[*]]) :: [*] where
 data Error x
 data NoMatch
 
+-- Helper
+type family PrependIf (b :: Bool) (x :: [*]) (xs::[[*]]) :: [[*]] where
+    PrependIf True  x xs = x ': xs
+    PrependIf False x xs = xs
 
 -- | @'FilterBestMembers' as ms ms@ returns the list of members from @ms@ that are
 --   better than all the other members in @ms@ (with respect to the argument list
@@ -92,7 +89,7 @@ type family FilterBestMembers (as::[*]) (ms::[[*]]) (ns::[[*]]) :: [[*]] where
 --                                (FilterBestMembers as ms ns)
 
 type family FilterBestMembers' (as::[*]) (ms::[[*]]) (n :: [*] ) (fbms::[[*]]) :: [[*]] where
-    FilterBestMembers' as ms n fbms = If (IsBestMember as ms n) (n ': fbms) fbms
+    FilterBestMembers' as ms n fbms = PrependIf (IsBestMember as ms n) n fbms
 
 -- | @'IsBestMember' as ms n@ is true iff the member @n@ is better than all
 --   the (other) members in @ms@ with respect to the argument list @as@. 
@@ -106,7 +103,7 @@ type family FilterBestMembers' (as::[*]) (ms::[[*]]) (n :: [*] ) (fbms::[[*]]) :
 type family IsBestMember (as::[*]) (ms::[[*]]) (n :: [*]) :: Bool where
     IsBestMember as '[]       n = True
     IsBestMember as (m ': ms) n =
-        If (MemberEq m n) (IsBestMember as ms n)
+        If (m == n) (IsBestMember as ms n)
                       ((IsBetterMember as n m) && (IsBestMember as ms n))
 
 
@@ -120,7 +117,7 @@ type family    FilterApp  (as::[*])  (ms::[[*]]) :: [[*]] where
 
 -- Note: use of FilterApp' increases compilation speed by a factor of 10 (!)
 type family    FilterApp' (as::[*]) (m :: [*]) (fas::[[*]]) :: [[*]] where
-    FilterApp' as m fas = If (IsApp as m) (m ': fas) fas
+    FilterApp' as m fas = PrependIf (IsApp as m) m fas
 
 
 -- | @'IsApp' as ps@ is true iff the function member defined by the 
