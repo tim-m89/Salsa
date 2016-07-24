@@ -1,7 +1,4 @@
-
-# Unfortunately, ghc versions >= 7.10 currently blow up the type checker when trying to compile samples
-# that use more than a few method overloads (Console.WriteLine has heaps hence helloworld cannot be compiled for example)
-resolver: ghc-7.8.4
+resolver: ghc-8.0.1
 
 packages:
 
@@ -14,7 +11,7 @@ packages:
 #- Samples/Weather/
 
 # This is used to embed the driver dll into the source at compile time
-extra-deps: [file-embed-0.0.9.1]
+extra-deps: [file-embed-0.0.10]
 
 # If you'd like to force mono (instead of .Net) usage when using windows, set this flag to true
 flags:

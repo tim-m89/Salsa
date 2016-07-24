@@ -45,15 +45,10 @@ What's in the package:
 
 Requirements:
 
-  * GHC 7.8.x
+  * GHC >= 7.8
 
     Salsa makes use of extensions that have only been available since version
     7.8 of GHC.
-
-    Additionally, GHC >= 7.10 cannot be used very effectively due to
-    implementation details of the type checker that make use of type families
-    too strict, and hence exhaust all the memory and/or take a long time when
-    trying to resolve from a small handful of method overloads.
 
   * Microsoft .NET Framework 3.5 / Mono
 
@@ -64,8 +59,8 @@ Requirements:
     Salsa will not work with versions 1.0/1.1 of the .NET Framework.
 
     Additionally, Microsoft .Net 4.0 introduced a new version of the runtime
-    (<4.0 all used the separate 2.0 runtime), which currently has a major
-    unresolved issue in that it doesn't work when called from Haskell.
+    (<4.0 all used the separate 2.0 runtime), which may cause issues not present
+    in the 2.0 runtime.
 
     Building with Mono and running Salsa executables on Mono works. Salsa
     will be built with Mono if not running on Windows or the flag 'use_mono'
