@@ -72,7 +72,7 @@ foreign import ccall mono_domain_get :: IO MonoDomainPtr
 foreign import ccall mono_assembly_loaded :: MonoAssemblyNamePtr -> IO MonoAssemblyPtr
 foreign import ccall mono_assembly_name_new :: CString -> IO MonoAssemblyNamePtr
 foreign import ccall mono_assembly_get_image :: MonoAssemblyPtr -> IO MonoImagePtr
-foreign import ccall "marshal.c setupDomain" setupDomainInternal :: MonoDomainPtr -> CString -> CString -> IO () 
+foreign import ccall mono_domain_set_config :: MonoDomainPtr -> CString -> CString -> IO ()
 
 
 driverDataArray :: IO MonoArrayPtr
@@ -85,7 +85,7 @@ driverDataArray = unsafeUseAsCStringLen driverData $ \(p,l)-> do
         ar <- mono_array_new dom bcls l
         mono_value_copy_array ar 0 p l
         return ar
-    
+
 
 startCLR' = do
     mono_config_parse nullPtr
@@ -113,7 +113,7 @@ getSalsa = withCString "Salsa" $ \c-> do
             if image == nullPtr then
                 error "Could not get Salsa image"
             else return image
-            
+
 
 getMethodFromNameImage :: String -> MonoImagePtr -> IO MonoMethodPtr
 getMethodFromNameImage nameS img = withCString nameS $ \nameC-> do
@@ -130,7 +130,7 @@ setupDomain :: IO ()
 setupDomain = withCString "Salsa.config" $ \configFile-> do
     withCString "./" $ \baseDir-> do
         dom <- mono_domain_get
-        setupDomainInternal dom baseDir configFile
+        mono_domain_set_config dom baseDir configFile
         return ()
 
 loadDriverAndBoot :: IO (FunPtr (CString -> IO (FunPtr a)))

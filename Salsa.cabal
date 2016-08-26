@@ -64,8 +64,6 @@ Source-Repository head
 Library
   Default-Language: Haskell2010
 
-  C-sources: Foreign/Salsa/salsa.c
-
   Exposed-modules:
       Foreign.Salsa
       Foreign.Salsa.Binding
@@ -78,7 +76,7 @@ Library
       Foreign.Salsa.Driver
 
   if !os(windows) || flag(use_mono)
-  
+
     Other-Modules:
       Foreign.Salsa.Mono.CLRHost
 
